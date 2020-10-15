@@ -142,7 +142,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/a_uav_controller_node.cpp)
 add_executable(offB_Controller src/controller src/controller_node)
-#add_executable(offB_Controller2 src/offB_Controller.cpp)
+add_executable(Two_offB_Controller src/offB_Controller.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -154,6 +154,7 @@ add_executable(offB_Controller src/controller src/controller_node)
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(offB_Controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(Two_offB_Controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 
 ## Specify libraries to link a library or executable target against
@@ -163,6 +164,9 @@ add_dependencies(offB_Controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
  target_link_libraries(offB_Controller
    ${catkin_LIBRARIES}
  )
+target_link_libraries(Two_offB_Controller
+        ${catkin_LIBRARIES}
+        )
 #############
 ## Install ##
 #############
