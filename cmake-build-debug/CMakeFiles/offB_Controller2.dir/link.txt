@@ -1,1 +1,0 @@
-/usr/bin/c++   -std=c++11 -g  -rdynamic CMakeFiles/offB_Controller2.dir/src/offB_Controller.cpp.o  -o devel/lib/a_uav_controller/offB_Controller2 

@@ -1,8 +1,0 @@
-prefix=/usr/local
-
-Name: a_uav_controller
-Description: Description of a_uav_controller
-Version: 0.0.0
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib 
-Requires: 
