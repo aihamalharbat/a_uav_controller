@@ -6,13 +6,13 @@
 #include "ros/ros.h"
 
 // MAV parameters.
-const double kMass = 1.56779;
-const double kArmLength = 0.215;
+const double kMass = 1.725;
+const double kArmLength = 0.343;    // xyz = 0.13 -0.22 0.023
 const Eigen::Vector3d kInertiaDiag =
-        Eigen::Vector3d(0.0347563, 0.0458929, 0.0977);
+        Eigen::Vector3d(0.029125, 0.029125, 0.055225);
 const double kMomentConstant = 1.6e-2;
-const double kGravity = 9.81;
 const double kThrustConstant = 8.568e-6;
+const double kGravity = 9.81;
 
 // Default values for the lee position controller and the Asctec Firefly.
 const Eigen::Vector3d kPositionGain = Eigen::Vector3d(6, 6, 6) / kMass;
@@ -121,10 +121,10 @@ void controller::calculateActCmds(
     computeAttitudeTracking(B_z_d, &tau);
 
     // Compute rotor speeds with allocation inverse.
-    Eigen::Vector4d thrust_torque;
-    thrust_torque << T, tau;
+    Eigen::Vector4d torque_thrust;
+    torque_thrust << tau, T;
 
-    *ActCmds = thrust_torque;
+    *ActCmds = torque_thrust;
 }
 
 
