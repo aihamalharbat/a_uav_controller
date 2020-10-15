@@ -2,31 +2,44 @@
 // Created by aalharbat on 14-10-20.
 //
 
-#include "controller_node.h"
+#include "a_uav_controller/controller_node.h"
 #include "a_uav_controller/controller.h"
 #include <mav_msgs/Actuators.h>
 #include <mav_msgs/conversions.h>
 #include <mav_msgs/default_topics.h>
 #include <mav_msgs/eigen_mav_msgs.h>
 #include "mavros_msgs/ActuatorControl.h"
+#include "mavros_msgs/CommandBool.h"
+#include "mavros_msgs/SetMode.h"
+#include "mavros_msgs/State.h"
 #include <ros/ros.h>
 
 
 controller_node::controller_node() {
     ros::NodeHandle nh;
+    // Services and connection
+    arming_client = nh.serviceClient<mavros_msgs::CommandBool>
+            ("mavros/cmd/arming");
+    set_mode_client = nh.serviceClient<mavros_msgs::SetMode>
+            ("mavros/set_mode");
+    state_sub = nh.subscribe<mavros_msgs::State>
+            ("mavros/state", 10,
+             &controller_node::stateCallBack, this);
+    secureConnection();
 
     // Subscriptions:
     cmd_pose_sub_ =nh_.subscribe(
             mav_msgs::default_topics::COMMAND_POSE, 1,
             &controller_node::CommandPoseCallback, this);
 
-    cmd_multi_dof_joint_trajectory_sub_ = nh_.subscribe(
+    cmd_multi_dof_joint_trajectory_sub_ = nh_.subscribe(                        // Not used
             mav_msgs::default_topics::COMMAND_TRAJECTORY, 1,
             &controller_node::MultiDofJointTrajectoryCallback, this);
 
-    odometry_sub_ =nh_.subscribe(
+    odometry_sub_ =nh_.subscribe(                                               // Read odometry
             "/mavros/odometry/in", 1,
             &controller_node::OdometryCallbackV2, this);
+
 
     // Publications:
     motor_velocity_reference_pub_ = nh_.advertise<mav_msgs::Actuators>(         // Not used
@@ -38,9 +51,33 @@ controller_node::controller_node() {
     command_timer_ = nh_.createTimer(
             ros::Duration(0), &controller_node::TimedCommandCallback, this,
             true, false);
+
 }
 
-controller_node::~controller_node() = default;
+controller_node::~controller_node() = default;                                  // Deconstruct
+
+void controller_node::secureConnection() {
+    mavros_msgs::SetMode offb_set_mode;
+    offb_set_mode.request.custom_mode = "OFFBOARD";
+    mavros_msgs::CommandBool arm_cmd;
+    arm_cmd.request.value = true;
+    while (!current_state_.armed && current_state_.mode != "OFFBOARD"){
+        if(set_mode_client.call(offb_set_mode) &&
+            offb_set_mode.response.mode_sent){
+            ROS_INFO("Offboard enabled");
+        }
+        else {
+            if (!current_state_.armed ) {
+                if (arming_client.call(arm_cmd) &&
+                    arm_cmd.response.success) {
+                    ROS_INFO("Vehicle armed");
+                }
+            }
+        }
+        ros::spinOnce();
+    }
+}
+
 
 void controller_node::CommandPoseCallback(
         const geometry_msgs::PoseStampedConstPtr& pose_msg) {                   // When a command is received
@@ -53,6 +90,7 @@ void controller_node::CommandPoseCallback(
     mav_msgs::eigenTrajectoryPointFromPoseMsg(*pose_msg, &eigen_reference);
     commands_.push_front(eigen_reference);
 
+    ROS_INFO_ONCE("Controller got first command message.");
     controller_.setTrajectoryPoint(commands_.front());          // Send the command to controller_ obj
     commands_.pop_front();
 }
@@ -116,56 +154,62 @@ void controller_node::TimedCommandCallback(const ros::TimerEvent& e) {
     }
 }
 
-void controller_node::OdometryCallback(
-        const nav_msgs::OdometryConstPtr& odometry_msg) {
-    ROS_INFO_ONCE("Controller got first odometry message.");
+void controller_node::OdometryCallback(                                     // read odometry and take action
+        const nav_msgs::OdometryConstPtr& odometry_msg) {                   // THE MAIN connection to controller class
 
+    //  Debug message
+    ROS_INFO_ONCE("Controller got first odometry message.");
+    // send odometry to controller_ obj
     mav_msgs::EigenOdometry odometry;
     mav_msgs::eigenOdometryFromMsg(*odometry_msg, &odometry);
     controller_.setOdometry(odometry);
-
+    //  calculate controller output
     Eigen::VectorXd ref_rotor_velocities;
     controller_.calculateRotorVelocities(&ref_rotor_velocities);
 
-    // Todo(ffurrer): Do this in the conversions header.
+    /* Todo(ffurrer): Do this in the conversions header. */
+    //  prepare actuators message
     mav_msgs::ActuatorsPtr actuator_msg(new mav_msgs::Actuators);
-
     actuator_msg->angular_velocities.clear();
     for (int i = 0; i < ref_rotor_velocities.size(); i++) {
         actuator_msg->angular_velocities.push_back(ref_rotor_velocities[i]);
     }
-
     actuator_msg->header.stamp = odometry_msg->header.stamp;
-
+    //  Publish Actuators message
     motor_velocity_reference_pub_.publish(actuator_msg);
     ROS_INFO("Published!");
 }
 
 void controller_node::OdometryCallbackV2(
         const nav_msgs::OdometryConstPtr& odometry_msg) {
-    ROS_INFO_ONCE("Controller got first odometry message.");
 
+    //  Debug message
+    ROS_INFO_ONCE("Controller got first odometry message.");
+    // send odometry to controller_ obj
     mav_msgs::EigenOdometry odometry;
     mav_msgs::eigenOdometryFromMsg(*odometry_msg, &odometry);
     controller_.setOdometry(odometry);
-
+    //  calculate controller output
     Eigen::VectorXd ActCmds;
     controller_.calculateActCmds(&ActCmds);
-
     // Todo(ffurrer): Do this in the conversions header.
-//    mav_msgs::ActuatorsPtr actuator_msg(new mav_msgs::Actuators);
+    //  prepare actuators message
     mavros_msgs::ActuatorControlPtr actuator_msg(new mavros_msgs::ActuatorControl);
     actuator_msg->group_mix = 0;
     actuator_msg->controls[0] = ActCmds[0];
     actuator_msg->controls[1] = ActCmds[1];
     actuator_msg->controls[2] = ActCmds[2];
     actuator_msg->controls[3] = ActCmds[3];
-//    ROS_INFO("Again, Thrust = %f", actuator_msg->controls[0]);
     actuator_msg->header.stamp = odometry_msg->header.stamp;
+    // Debug message
     ROS_INFO("Pre-Published! (from V2)");                           // Working till here
-
+    //  Publish Actuators message
     ActCmds_pub_.publish(actuator_msg);                             // The publisher is the problem
     ROS_INFO("Published! (from V2)");
+}
+
+void controller_node::stateCallBack(const mavros_msgs::State::ConstPtr& msg){
+        current_state_ = *msg;
 }
 
 int main(int argc, char** argv) {
