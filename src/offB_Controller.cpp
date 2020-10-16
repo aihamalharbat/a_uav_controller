@@ -18,6 +18,19 @@ float pose_measured[6];
 
 void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;
+    if (msg->armed){
+        ROS_INFO("ARMED from State_msg.");
+    }
+    else {
+        ROS_INFO("NOT ARMED from State_msg.");
+    }
+
+    if (msg->mode == "OFFBOARD"){
+        ROS_INFO("OFFBOARD from State_msg.");
+    }
+    else {
+        ROS_INFO("NOT OFFBOARD from State_msg.");
+    }
 }
 
 void uav_pose_read(const geometry_msgs::PoseStamped pose_msg){
@@ -38,12 +51,13 @@ float alt_p_controller (const float p_gain, const float setpoint, const float me
     else if (control < 0){
         control = 0;
     }
+    ROS_INFO_ONCE("Control fcn! control = %f", control);
     return control;
 }
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "offb_node");
+    ros::init(argc, argv, "Two_offB_Controller");
     ros::NodeHandle nh;
 
     ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>
@@ -98,9 +112,9 @@ int main(int argc, char **argv)
     //send a few setpoints before starting off-board mode
     for(int i = 100; ros::ok() && i > 0; --i){
 //        local_pos_pub.publish(pose);  // publish pose on mavros/setpoint_position/local
-//        actuators_cmd.publish(act_cmd);
-        attitude_cmd.publish(attitude_msg);
-        thrust_cmd.publish(thrust_msg);
+        actuators_cmd.publish(act_cmd);
+//        attitude_cmd.publish(attitude_msg);
+//        thrust_cmd.publish(thrust_msg);
         ros::spinOnce();              //resposible to handle communication events, e.g. arriving messages
         rate.sleep();
     }
@@ -110,18 +124,37 @@ int main(int argc, char **argv)
 
     mavros_msgs::CommandBool arm_cmd;
     arm_cmd.request.value = true;
+    //  Connection trial
+    ros::Rate slow(0.5);
+    while (current_state.mode != "OFFBOARD" && !current_state.armed ){
+        if (current_state.mode != "OFFBOARD" &&
+        set_mode_client.exists() &&
+        set_mode_client.isValid()){
+            set_mode_client.call(offb_set_mode);
+            ROS_INFO("Offboard enabled");
+        }
+        if (!current_state.armed &&
+        arming_client.exists() &&
+        arming_client.isValid()){
+            arming_client.call(arm_cmd);
+            ROS_INFO("Vehicle armed");
+        }
+        ros::spinOnce();
+//        slow.sleep();
+    }
     // record the begining ros time
     ros::Time last_request = ros::Time::now();
     //Check whether it's time to exit.
     while(ros::ok()){
 
-        thrust_msg.thrust = 0.7 + alt_p_controller(0.2,1,pose_measured[5]);
-
+        act_cmd.controls[3] = 0.7 + alt_p_controller(0.2,1,pose_measured[5]);
+//        act_cmd.controls[3] = 1;
+//        thrust_msg.thrust = 0.7 + alt_p_controller(0.2,1,pose_measured[5]);
 
 //        if (counter < 400 ){
 //            pose.pose.position.x = 0;
 //            pose.pose.position.y = 0;
-//            pose.pose.position.z = 2;
+//        pose.pose.position.z = 2;
 //        } else if (counter >= 400 && counter < 600){
 //            pose.pose.position.x = 2;
 //            pose.pose.position.y = 0;
@@ -156,32 +189,34 @@ int main(int argc, char **argv)
 //            pose.pose.position.z = 0;
 //        }
 //
-        if(current_state.mode != "OFFBOARD" &&
-           (ros::Time::now() - last_request > ros::Duration(5.0))){
-            if( set_mode_client.call(offb_set_mode) &&
-                offb_set_mode.response.mode_sent){
-                ROS_INFO("Offboard enabled");
-            }
-            last_request = ros::Time::now();
-        } else {
-            if( !current_state.armed &&
-                (ros::Time::now() - last_request > ros::Duration(5.0))){
-                if( arming_client.call(arm_cmd) &&
-                    arm_cmd.response.success){
-                    ROS_INFO("Vehicle armed");
-                }
-                last_request = ros::Time::now();
-
-            }
-        }
+//        if(current_state.mode != "OFFBOARD" &&
+//           (ros::Time::now() - last_request > ros::Duration(5.0))){
+//            if( set_mode_client.call(offb_set_mode) &&
+//                offb_set_mode.response.mode_sent){
+//                ROS_INFO("Offboard enabled");
+//            }
+//            last_request = ros::Time::now();
+//        } else {
+//            ROS_INFO("IN ELSE");
+//            if( !current_state.armed &&
+//                (ros::Time::now() - last_request > ros::Duration(5.0))){
+//                ROS_INFO("IN IF1");
+//                if( arming_client.call(arm_cmd) &&
+//                    arm_cmd.response.success){
+//                    ROS_INFO("Vehicle armed");
+//                }
+//                last_request = ros::Time::now();
+//
+//            }
+//        }
 
 //        local_pos_pub.publish(pose);    // publish pose on mavros/setpoint_position/local
+        actuators_cmd.publish(act_cmd);
 //        ROS_INFO("Startposition z=%f", pose.pose.position.z);
         ROS_INFO("current z = %f", pose_measured[5]);
-        ROS_INFO("current cmd = %f",  thrust_msg.thrust);
-//        actuators_cmd.publish(act_cmd);
-        thrust_cmd.publish(thrust_msg);
-        attitude_cmd.publish(attitude_msg);
+//        ROS_INFO("current cmd = %f",  thrust_msg.thrust);
+//        thrust_cmd.publish(thrust_msg);
+//        attitude_cmd.publish(attitude_msg);
         counter ++;
         ros::spinOnce();
         rate.sleep();
@@ -208,3 +243,88 @@ int main(int argc, char **argv)
 //    ROS_INFO("go to altitude of z=%f !", pose.pose.position.z);
 //  }
 //}
+
+/* Notes about the while loop: services called many times until the message arrived about state change.
+     * Tests with different msg_type and initialization
+     * Worked with initial pose_msgs && pose_control:
+            {
+                ERROR [tone_alarm] notify negative
+                [ INFO] [1602837193.291388089, 15.380000000]: WP: mission received
+                [ WARN] [1602837200.013687953, 22.088000000]: CMD: Unexpected command 176, result 0
+                INFO  [commander] Armed by external command
+                WARN  [mc_pos_control] Failsafe: stop and wait
+                INFO  [commander] Takeoff detected
+                WARN  [commander] Failsafe enabled: no RC and no offboard
+                INFO  [commander] Failsafe mode activated
+                WARN  [tone_alarm] battery warning (fast)
+                INFO  [commander] Landing detected
+                INFO  [commander] Disarmed by landing
+                INFO  [logger] closed logfile, bytes written: 2156744
+
+            }
+     *  Test without arming and mode: sends messages no problem, nothing happens cz not armed and:
+            {
+                ERROR [tone_alarm] notify negative
+                [ INFO] [1602801518.867410778, 15.228000000]: WP: mission received
+                [ WARN] [1602801529.809473018, 26.144000000]: CMD: Unexpected command 176, result 0
+                INFO  [commander] Armed by external command
+                WARN  [mc_pos_control] Failsafe: stop and wait
+                WARN  [commander] Failsafe enabled: no RC and no offboard
+                INFO  [commander] Failsafe mode activated
+                WARN  [tone_alarm] battery warning (fast)
+                INFO  [commander] Failsafe mode deactivated
+                INFO  [commander] Takeoff detected
+                WARN  [commander] Failsafe enabled: no RC and no offboard
+                INFO  [commander] Failsafe mode activated
+                INFO  [commander] Landing detected
+                INFO  [commander] Disarmed by landing
+                INFO  [logger] closed logfile, bytes written: 2855730
+            }
+     *  Test initial act_cmd && act_control: stops after the first message, and:
+            {
+                ERROR [tone_alarm] notify negative
+                [ INFO] [1602801373.145744956, 15.316000000]: WP: mission received
+                [ WARN] [1602801380.470737123, 22.624000000]: CMD: Unexpected command 176, result 0
+                INFO  [commander] Armed by external command
+                ERROR [sensors] Accel #0 fail:  TIMEOUT!
+                ERROR [vehicle_air_data] BARO #0 failed:  TIMEOUT!
+                ERROR [vehicle_magnetometer] MAG #0 failed:  TIMEOUT!
+                WARN  [commander] Failsafe enabled: no RC and no offboard
+                INFO  ERROR [tone_alarm] notify negative
+                [commander] Failsafe mode activated
+                WARN  [tone_alarm] battery warning (fast)
+                INFO  [commander] Failsafe mode deactivated
+                INFO  [commander] Takeoff detected
+                WARN  [commander] Failsafe enabled: no RC and no offboard
+                INFO  [commander] Failsafe mode activated
+                WARN  [commander] Connection to mission computer lost
+                INFO  [commander] Landing detected
+                INFO  [commander] Disarmed by landing
+                INFO  [logger] closed logfile, bytes written: 1209284
+            }
+            -- worked Oct16 1038--
+                ERROR [tone_alarm] notify negative
+                [ INFO] [1602837388.641015208, 15.356000000]: WP: mission received
+                [ WARN] [1602837395.292530707, 21.992000000]: CMD: Unexpected command 176, result 0
+                INFO  [commander] Armed by external command
+                INFO  [commander] Disarmed by auto preflight disarming
+                INFO  [logger] closed logfile, bytes written: 1668791
+
+     *  Test while loop with thrust_msgs attitude_msg && initial thrust_msgs attitude_msg:
+            does not stop after first message, but no reaction from UAV, and:
+            {
+                ERROR [tone_alarm] notify negative
+                [ INFO] [1602801058.645255566, 15.416000000]: WP: mission received
+                ERROR [tone_alarm] notify negative
+                [ WARN] [1602801076.162872323, 32.892000000]: CMD: Unexpected command 176, result 1
+                INFO  [commander] Armed by external command
+                WARN  [commander] Failsafe enabled: No manual control stick input
+                INFO  [commander] Failsafe mode activated
+                INFO  [navigator] RTL HOME activated
+                INFO  [navigator] RTL: landing at home position.
+                INFO  [commander] Failsafe mode deactivated
+                WARN  [tone_alarm] battery warning (fast)
+                INFO  [commander] Disarmed by auto preflight disarming
+                INFO  [logger] closed logfile, bytes written: 2260243
+            }
+    */
