@@ -41,7 +41,7 @@ private:
 
     bool connected_ = false;
     void secureConnection();
-
+    Eigen::Vector4d normalizeActCmds (Eigen::VectorXd *wrench);
     // CallBacks
     void CommandPoseCallback(const geometry_msgs::PoseStampedConstPtr& pose_msg);
     void TimedCommandCallback(const ros::TimerEvent& e);

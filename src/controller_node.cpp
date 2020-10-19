@@ -244,12 +244,13 @@ void controller_node::OdometryCallbackV2(                                       
         controller_.calculateActCmds(&ActCmds);
         // Todo(ffurrer): Do this in the conversions header.
         //  prepare actuators message
+        Eigen::Vector4d ActCmdsNormalized = normalizeActCmds(&ActCmds);
         mavros_msgs::ActuatorControlPtr actuator_msg(new mavros_msgs::ActuatorControl);
         actuator_msg->group_mix = 0;
-        actuator_msg->controls[0] = ActCmds[0];
-        actuator_msg->controls[1] = ActCmds[1];
-        actuator_msg->controls[2] = ActCmds[2];
-        actuator_msg->controls[3] = ActCmds[3];
+        actuator_msg->controls[0] = ActCmdsNormalized[0];
+        actuator_msg->controls[1] = ActCmdsNormalized[1];
+        actuator_msg->controls[2] = ActCmdsNormalized[2];
+        actuator_msg->controls[3] = ActCmdsNormalized[3];
         actuator_msg->header.stamp = odometry_msg->header.stamp;
     // Debug message
     ROS_INFO("Pre-Published! (from V2)");                           // Working till here
@@ -258,6 +259,52 @@ void controller_node::OdometryCallbackV2(                                       
     ROS_INFO("Published! (from V2)");
     }
 
+}
+
+Eigen::Vector4d controller_node::normalizeActCmds(Eigen::VectorXd *wrench) {
+    //  Assuming that:
+    //  wrench = [roll_torque; pitch_torque; yaw_torque; thrust]
+    Eigen::Vector4d normalizedWrench;
+    //  These values are form this matlab code:
+//    %   From iris.sdf
+//    x_position = 0.13;
+//    y_position = 0.22;
+//    K_motor = 5.84e-06;
+//    K_moment = 0.06;
+//    max_vel = 1100;     % rad/s
+//    max_force = K_motor * (max_vel^2)
+//    max_x_torque = 2 * max_force * x_position
+//    max_y_torque = 2 * max_force * y_position
+//    max_thrust = 4 * max_force
+//    max_yaw_torque = 4 * K_moment * max_force
+    // TODO: move _max_ to static parameters
+    double _max_roll_torque = 1.8373;
+    double _max_pitch_torque = 3.1092;
+    double _max_yaw_torque = 1;
+    double _max_thrust = 28.2656;
+    // Normalize
+    normalizedWrench[0] = (*wrench)[0] / _max_roll_torque;      // normalize roll torque
+    normalizedWrench[1] = (*wrench)[1] / _max_pitch_torque;     // normalize pitch torque
+    normalizedWrench[2] = (*wrench)[2] / _max_yaw_torque;       // normalize yaw torque
+    normalizedWrench[3] = (*wrench)[3] / _max_thrust;           // Normalize F_z aka thrust
+    // Limit the torques to [-1,1]
+    // TODO: use std:max and std::min instead of ifs and for
+    for (int i = 0; i < 4; ++i) {
+        if (normalizedWrench[i] > 1){
+            normalizedWrench[i] = 1;
+        }
+        else if (normalizedWrench(i) < -1) {
+            normalizedWrench[i] = -1;
+        }
+    }
+    // Limit the thrust to [0,1]
+    if (normalizedWrench[3] > 1){
+        normalizedWrench[3] = 1;
+    }
+    else if (normalizedWrench[3] < 0) {
+        normalizedWrench[3] = 0;
+    }
+    return normalizedWrench;
 }
 
 void controller_node::stateCallBack(const mavros_msgs::State::ConstPtr& msg){
