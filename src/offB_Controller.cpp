@@ -124,7 +124,11 @@ int main(int argc, char **argv)
 
     mavros_msgs::CommandBool arm_cmd;
     arm_cmd.request.value = true;
-    //  Connection trial
+
+    /*  *********************************
+     *              ARM & OFFOARD
+     *  *********************************
+     */
     ros::Rate slow(0.5);
     while (current_state.mode != "OFFBOARD" && !current_state.armed ){
         if (current_state.mode != "OFFBOARD" &&
