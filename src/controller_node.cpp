@@ -22,13 +22,9 @@ controller_node::controller_node() {
             ("mavros/cmd/arming");
     set_mode_client = nh.serviceClient<mavros_msgs::SetMode>
             ("mavros/set_mode");
-    state_sub = nh.subscribe<mavros_msgs::State>
-            ("mavros/state", 10,
-             &controller_node::stateCallBack, this);
-    secureConnection();
 
     // Subscriptions:
-    cmd_pose_sub_ =nh_.subscribe(
+    cmd_pose_sub_ =nh_.subscribe(                                               // Read command
             mav_msgs::default_topics::COMMAND_POSE, 1,
             &controller_node::CommandPoseCallback, this);
 
@@ -40,6 +36,9 @@ controller_node::controller_node() {
             "/mavros/odometry/in", 1,
             &controller_node::OdometryCallbackV2, this);
 
+    state_sub = nh.subscribe<mavros_msgs::State>                                // Read Statues
+            ("mavros/state", 10,
+             &controller_node::stateCallBack, this);
 
     // Publications:
     motor_velocity_reference_pub_ = nh_.advertise<mav_msgs::Actuators>(         // Not used
@@ -52,30 +51,81 @@ controller_node::controller_node() {
             ros::Duration(0), &controller_node::TimedCommandCallback, this,
             true, false);
 
+    connected_ = false;
+    secureConnection();
 }
 
 controller_node::~controller_node() = default;                                  // Deconstruct
 
 void controller_node::secureConnection() {
+    ros::Rate rate(20);
+    // Wait for FCU connection
+    while(ros::ok() && !current_state_.connected){
+        ros::spinOnce();
+        rate.sleep();
+    }
+    ROS_INFO("FCU connected!");
+
+    // Fill the buffer
+    mavros_msgs::ActuatorControl tempMsg;
+    tempMsg.group_mix = 0;
+    tempMsg.controls[1] = 0;
+    tempMsg.controls[2] = 0;
+    tempMsg.controls[3] = 0;
+    tempMsg.controls[4] = 0;
+    for(int i = 100; ros::ok() && i > 0; --i){
+        ActCmds_pub_.publish(tempMsg);
+        ros::spinOnce();                        //resposible to handle communication events, e.g. arriving messages
+        rate.sleep();
+    }
+    ROS_INFO_ONCE("Done filling buffer!");
+
+    /*  *********************************
+     *              ARM & OFFOARD
+     *  *********************************
+     */
+    ros::Time last_request = ros::Time::now();
     mavros_msgs::SetMode offb_set_mode;
     offb_set_mode.request.custom_mode = "OFFBOARD";
     mavros_msgs::CommandBool arm_cmd;
     arm_cmd.request.value = true;
-    while (!current_state_.armed && current_state_.mode != "OFFBOARD"){
-        if(set_mode_client.call(offb_set_mode) &&
-            offb_set_mode.response.mode_sent){
-            ROS_INFO("Offboard enabled");
+    ROS_INFO_ONCE("Start ARMING and OB.");
+//    while (!current_state_.armed && current_state_.mode != "OFFBOARD"){
+//        if(set_mode_client.call(offb_set_mode) &&
+//            (offb_set_mode.response.mode_sent) &&
+//            (ros::Time::now() - last_request > ros::Duration(5.0)) ){
+//            ROS_INFO("Offboard enabled");
+//            last_request = ros::Time::now();
+//        }
+//        else if (!current_state_.armed &&
+//            (ros::Time::now() - last_request > ros::Duration(5.0)) &&
+//            (arming_client.call(arm_cmd) &&
+//                    arm_cmd.response.success)) {
+//                    ROS_INFO("Vehicle armed");
+//                    last_request = ros::Time::now();
+//
+//        }
+//        ros::spinOnce();
+//        rate.sleep();
+//        ROS_INFO_ONCE("In the loop for arming");
+//    }
+    while (current_state_.mode != "OFFBOARD" && !current_state_.armed ){
+        if (current_state_.mode != "OFFBOARD" &&
+            set_mode_client.exists() &&
+            set_mode_client.isValid()){
+            set_mode_client.call(offb_set_mode);
+            ROS_INFO_ONCE("Offboard enabled");
         }
-        else {
-            if (!current_state_.armed ) {
-                if (arming_client.call(arm_cmd) &&
-                    arm_cmd.response.success) {
-                    ROS_INFO("Vehicle armed");
-                }
-            }
+        if (!current_state_.armed &&
+            arming_client.exists() &&
+            arming_client.isValid()){
+            arming_client.call(arm_cmd);
+            ROS_INFO_ONCE("Vehicle armed");
         }
         ros::spinOnce();
     }
+    ROS_INFO("Out of arming and OFFb loop");
+    connected_ = true;
 }
 
 
@@ -95,7 +145,7 @@ void controller_node::CommandPoseCallback(
     commands_.pop_front();
 }
 
-void controller_node::MultiDofJointTrajectoryCallback(
+void controller_node::MultiDofJointTrajectoryCallback(                           // Not used
         const trajectory_msgs::MultiDOFJointTrajectoryConstPtr& msg) {
     // Clear all pending commands.
     command_timer_.stop();
@@ -180,36 +230,51 @@ void controller_node::OdometryCallback(                                     // r
     ROS_INFO("Published!");
 }
 
-void controller_node::OdometryCallbackV2(
-        const nav_msgs::OdometryConstPtr& odometry_msg) {
-
-    //  Debug message
-    ROS_INFO_ONCE("Controller got first odometry message.");
-    // send odometry to controller_ obj
-    mav_msgs::EigenOdometry odometry;
-    mav_msgs::eigenOdometryFromMsg(*odometry_msg, &odometry);
-    controller_.setOdometry(odometry);
-    //  calculate controller output
-    Eigen::VectorXd ActCmds;
-    controller_.calculateActCmds(&ActCmds);
-    // Todo(ffurrer): Do this in the conversions header.
-    //  prepare actuators message
-    mavros_msgs::ActuatorControlPtr actuator_msg(new mavros_msgs::ActuatorControl);
-    actuator_msg->group_mix = 0;
-    actuator_msg->controls[0] = ActCmds[0];
-    actuator_msg->controls[1] = ActCmds[1];
-    actuator_msg->controls[2] = ActCmds[2];
-    actuator_msg->controls[3] = ActCmds[3];
-    actuator_msg->header.stamp = odometry_msg->header.stamp;
+void controller_node::OdometryCallbackV2(                                       // read odometry and take action
+        const nav_msgs::OdometryConstPtr& odometry_msg) {                       // THE MAIN connection to controller class
+    if (connected_) {
+        //  Debug message
+        ROS_INFO_ONCE("Controller got first odometry message.");
+        // send odometry to controller_ obj
+        mav_msgs::EigenOdometry odometry;
+        mav_msgs::eigenOdometryFromMsg(*odometry_msg, &odometry);
+        controller_.setOdometry(odometry);
+        //  calculate controller output
+        Eigen::VectorXd ActCmds;
+        controller_.calculateActCmds(&ActCmds);
+        // Todo(ffurrer): Do this in the conversions header.
+        //  prepare actuators message
+        mavros_msgs::ActuatorControlPtr actuator_msg(new mavros_msgs::ActuatorControl);
+        actuator_msg->group_mix = 0;
+        actuator_msg->controls[0] = ActCmds[0];
+        actuator_msg->controls[1] = ActCmds[1];
+        actuator_msg->controls[2] = ActCmds[2];
+        actuator_msg->controls[3] = ActCmds[3];
+        actuator_msg->header.stamp = odometry_msg->header.stamp;
     // Debug message
     ROS_INFO("Pre-Published! (from V2)");                           // Working till here
     //  Publish Actuators message
     ActCmds_pub_.publish(actuator_msg);                             // The publisher is the problem
     ROS_INFO("Published! (from V2)");
+    }
+
 }
 
 void controller_node::stateCallBack(const mavros_msgs::State::ConstPtr& msg){
-        current_state_ = *msg;
+    current_state_ = *msg;
+    if (msg->armed){
+        ROS_INFO_ONCE("ARMED - State_msg.");
+    }
+    else {
+        ROS_INFO("NOT ARMED - State_msg.");
+    }
+
+    if (msg->mode == "OFFBOARD"){
+        ROS_INFO_ONCE("OFFBOARD - State_msg.");
+    }
+    else {
+        ROS_INFO("NOT OFFBOARD - State_msg.");
+    }
 }
 
 int main(int argc, char** argv) {
@@ -217,8 +282,11 @@ int main(int argc, char** argv) {
 
     controller_node
             controller_node_;
-
-    ros::spin();
+    ros::Rate rate(20);
+    while (ros::ok()){
+        ros::spinOnce();
+        rate.sleep();
+    }
 
     return 0;
 }

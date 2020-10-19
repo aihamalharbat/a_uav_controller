@@ -39,6 +39,7 @@ private:
     ros::Timer command_timer_;
     mavros_msgs::State current_state_;
 
+    bool connected_ = false;
     void secureConnection();
 
     // CallBacks
