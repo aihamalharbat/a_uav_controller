@@ -14,14 +14,54 @@ const double kMomentConstant = 1.6e-2;
 const double kThrustConstant = 8.568e-6;
 const double kGravity = 9.81;
 
-// Default values for the lee position controller and the Asctec Firefly.
-const Eigen::Vector3d kPositionGain = Eigen::Vector3d(6, 6, 6) / kMass;
-const Eigen::Vector3d kVelocityGain = Eigen::Vector3d(4.7, 4.7, 4.7) / kMass;
-const Eigen::Vector3d kAttitudeGain = Eigen::Vector3d(3, 3, 0.035);
-const Eigen::Vector3d kAngularRateGain = Eigen::Vector3d(0.52, 0.52, 0.025);
-
 controller::controller() : controller_active_(false) {
-
+    ros::NodeHandle priv_nh("~");
+    // Read parameters
+    // TODO: Dynamic reconfiguration
+    Eigen::Vector3d K_p;
+    Eigen::Vector3d K_v;
+    Eigen::Vector3d K_att;
+    Eigen::Vector3d K_rate;
+    if (!priv_nh.getParam("controller/position_gain/x", K_p[0])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/position_gain/y", K_p[1])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/position_gain/z", K_p[2])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/velocity_gain/x", K_v[0])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/velocity_gain/y", K_v[1])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/velocity_gain/z", K_v[2])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/attitude_gain/x", K_att[0])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/attitude_gain/y", K_att[1])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/attitude_gain/z", K_att[2])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/rate_gain/x", K_rate[0])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/rate_gain/y", K_rate[1])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/rate_gain/z", K_rate[2])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    setKPositionGain(K_p);
+    setKVelocityGain(K_v);
+    setKAttitudeGain(K_att);
+    setKAngularRateGain(K_rate);
 }
 
 void controller::computeAllocationMatrix() {
@@ -270,7 +310,19 @@ void controller::computeAttitudeTracking(const Eigen::Vector3d &B_z_d, Eigen::Ve
     //ENDRM
 }
 
+//  Setters
+void controller::setKPositionGain(const Eigen::Vector3d &kPositionGainvar) {
+    controller::kPositionGain = kPositionGainvar / kMass;
+}
 
+void controller::setKVelocityGain(const Eigen::Vector3d &kVelocityGain) {
+    controller::kVelocityGain = kVelocityGain / kMass;
+}
 
+void controller::setKAttitudeGain(const Eigen::Vector3d &kAttitudeGain) {
+    controller::kAttitudeGain = kAttitudeGain;
+}
 
-
+void controller::setKAngularRateGain(const Eigen::Vector3d &kAngularRateGain) {
+    controller::kAngularRateGain = kAngularRateGain;
+}

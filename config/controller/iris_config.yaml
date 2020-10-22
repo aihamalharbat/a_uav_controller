@@ -1,0 +1,37 @@
+controller:
+  position_gain:
+    x: 2
+    y: 2
+    z: 30
+  velocity_gain:
+    x: 1
+    y: 1
+    z: 12
+  attitude_gain:
+    x: 0.2
+    y: 0.2
+    z: 0035
+  rate_gain:
+    x: 0.2
+    y: 0.2
+    z: 0.025
+
+
+#    // TODO: move these controller parameters to dynamic reconfig file
+#    // Default values for the lee position controller and the Asctec Firefly.
+#    //const Eigen::Vector3d kPositionGain = Eigen::Vector3d(6, 6, 6) / kMass;
+#    //const Eigen::Vector3d kVelocityGain = Eigen::Vector3d(4.7, 4.7, 4.7) / kMass;
+#    //const Eigen::Vector3d kAttitudeGain = Eigen::Vector3d(3, 3, 0.035);
+#    //const Eigen::Vector3d kAngularRateGain = Eigen::Vector3d(0.52, 0.52, 0.025);
+#
+#    // The baseline gains 1 - Oct 20 2020 - iris
+#    //const Eigen::Vector3d kPositionGain = Eigen::Vector3d(1, 1, 20) / kMass;
+#    //const Eigen::Vector3d kVelocityGain = Eigen::Vector3d(0.7, 0.7, 9) / kMass;
+#    //const Eigen::Vector3d kAttitudeGain = Eigen::Vector3d(0.1, 0.1, 0.0035);
+#    //const Eigen::Vector3d kAngularRateGain = Eigen::Vector3d(0.1, 0.1, 0.025);
+#
+#    // The baseline gains 2 - Oct 21 2020 - iris
+#    //const Eigen::Vector3d kPositionGain = Eigen::Vector3d(2, 2, 30) / kMass;
+#    //const Eigen::Vector3d kVelocityGain = Eigen::Vector3d(1, 1, 12) / kMass;
+#    //const Eigen::Vector3d kAttitudeGain = Eigen::Vector3d(0.2, 0.2, 0.0035);
+#    //const Eigen::Vector3d kAngularRateGain = Eigen::Vector3d(0.2, 0.2, 0.025);

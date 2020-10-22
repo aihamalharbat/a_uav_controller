@@ -17,12 +17,19 @@ public:
     void setOdometry(const mav_msgs::EigenOdometry& odometry);
     void setTrajectoryPoint(
             const mav_msgs::EigenTrajectoryPoint& command_trajectory);
+    void setKPositionGain(const Eigen::Vector3d &kPositionGain);
+    void setKVelocityGain(const Eigen::Vector3d &kVelocityGain);
+    void setKAttitudeGain(const Eigen::Vector3d &kAttitudeGain);
+    void setKAngularRateGain(const Eigen::Vector3d &kAngularRateGain);
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 private:
     bool controller_active_;
+    Eigen::Vector3d kPositionGain;
+    Eigen::Vector3d kVelocityGain;
+    Eigen::Vector3d kAttitudeGain;
+    Eigen::Vector3d kAngularRateGain;
     Eigen::MatrixX4d thrust_and_torque_to_rotor_velocities_;
-
     mav_msgs::EigenTrajectoryPoint command_trajectory_;
     mav_msgs::EigenOdometry odometry_;
 
@@ -36,8 +43,9 @@ private:
 // Math Functions for the controller
 inline void skewMatrixFromVector(const Eigen::Vector3d& vector,
                                  Eigen::Matrix3d* skew_matrix) {
-    *skew_matrix << 0, -vector.z(), vector.y(), vector.z(), 0, -vector.x(),
-            -vector.y(), vector.x(), 0;
+    *skew_matrix << 0, -vector.z(), vector.y(),
+                    vector.z(), 0, -vector.x(),
+                    -vector.y(), vector.x(), 0;
 }
 
 inline void vectorFromSkewMatrix(const Eigen::Matrix3d& skew_matrix,

@@ -1,0 +1,24 @@
+controller:
+  position_gain:
+    x: 10
+    y: 10
+    z: 200
+  velocity_gain:
+    x: 0.7
+    y: 0.7
+    z: 50
+  attitude_gain:
+    x: 0.5
+    y: 0.5
+    z: 0035
+  rate_gain:
+    x: 0.5
+    y: 0.5
+    z: 025
+#    // TODO: move these controller parameters to dynamic reconfig file
+
+#    // The baseline gains 1 - Oct 21 2020 - Peach
+#    //const Eigen::Vector3d kPositionGain = Eigen::Vector3d(10, 10, 200) / kMass;
+#    //const Eigen::Vector3d kVelocityGain = Eigen::Vector3d(0.7, 0.7, 80) / kMass;
+#    //const Eigen::Vector3d kAttitudeGain = Eigen::Vector3d(0.5, 0.5, 0.0035);
+#    //const Eigen::Vector3d kAngularRateGain = Eigen::Vector3d(0.5, 0.5, 0.025);

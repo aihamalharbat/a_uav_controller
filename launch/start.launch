@@ -1,0 +1,11 @@
+<launch>
+
+<arg name="vehicle" default="peach"/>
+
+<node name="offB_Controller" pkg="a_uav_controller" type="offB_Controller" output="screen">
+    <rosparam command="load" file="$(find a_uav_controller)/config/controller/$(arg vehicle)_config.yaml"/>
+    <rosparam command="load" file="$(find a_uav_controller)/config/uav_parameters/$(arg vehicle)_param.yaml"/>
+
+</node>
+
+</launch>
