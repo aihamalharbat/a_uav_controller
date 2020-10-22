@@ -248,7 +248,7 @@ void controller_node::OdometryCallbackV2(                                       
         mavros_msgs::ActuatorControlPtr actuator_msg(new mavros_msgs::ActuatorControl);
         actuator_msg->group_mix = 0;
         actuator_msg->controls[0] = ActCmdsNormalized[0];
-        actuator_msg->controls[1] = ActCmdsNormalized[1];
+        actuator_msg->controls[1] = - ActCmdsNormalized[1];
         actuator_msg->controls[2] = ActCmdsNormalized[2];
         actuator_msg->controls[3] = ActCmdsNormalized[3];
         actuator_msg->header.stamp = odometry_msg->header.stamp;
