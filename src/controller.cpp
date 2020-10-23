@@ -139,7 +139,7 @@ void controller::calculateRotorVelocities(
 }
 
 void controller::calculateActCmds(
-        Eigen::VectorXd* ActCmds) const {
+        Eigen::VectorXd *ActCmds) {
     assert(ActCmds);
 
     ActCmds->resize(4);
@@ -162,8 +162,9 @@ void controller::calculateActCmds(
     // Compute rotor speeds with allocation inverse.
     Eigen::Vector4d torque_thrust;
     torque_thrust << tau, T;
-
-    *ActCmds = torque_thrust;
+    Eigen::Vector4d normalized_torque_thrust;
+    normalized_torque_thrust = normalizeActCmds(&torque_thrust);
+    *ActCmds = normalized_torque_thrust;
 }
 
 
@@ -307,4 +308,55 @@ void controller::computeAttitudeTracking(const Eigen::Vector3d &B_z_d, Eigen::Ve
             - kAngularRateGain.cwiseProduct(e_omega)
             + omega.cross(kInertiaDiag.asDiagonal() * omega);
     //ENDRM
+}
+Eigen::Vector4d controller::normalizeActCmds(Eigen::Vector4d *wrench) {
+    //  Assuming that:
+    //  wrench = [roll_torque; pitch_torque; yaw_torque; thrust]
+    Eigen::Vector4d normalizedWrench;
+    //  These values are form this matlab code:
+//    %   From iris.sdf
+//    x_position = 0.13;
+//    y_position = 0.22;
+//    K_motor = 5.84e-06;
+//    K_moment = 0.06;
+//    max_vel = 1100;     % rad/s
+//    max_force = K_motor * (max_vel^2)
+//    max_x_torque = 2 * max_force * x_position
+//    max_y_torque = 2 * max_force * y_position
+//    max_thrust = 4 * max_force
+//    max_yaw_torque = 4 * K_moment * max_force
+    // TODO: move _max_ to static parameters
+    // Iris
+    double _max_roll_torque = 1.8373;
+    double _max_pitch_torque = 3.1092;
+    double _max_yaw_torque = 1;
+    double _max_thrust = 28.2656;
+    // Peach
+//    double _max_roll_torque = 13.1736;
+//    double _max_pitch_torque =  11.4098;
+//    double _max_yaw_torque = 1;
+//    double _max_thrust = 115.4058;
+    // Normalize
+    normalizedWrench[0] = (*wrench)[0] / _max_roll_torque;      // normalize roll torque
+    normalizedWrench[1] = (*wrench)[1] / _max_pitch_torque;     // normalize pitch torque
+    normalizedWrench[2] = (*wrench)[2] / _max_yaw_torque;       // normalize yaw torque
+    normalizedWrench[3] = (*wrench)[3] / _max_thrust;           // Normalize F_z aka thrust
+    // Limit the torques to [-1,1]
+    // TODO: use std:max and std::min instead of ifs and for
+    for (int i = 0; i < 4; ++i) {
+        if (normalizedWrench[i] > 1){
+            normalizedWrench[i] = 1;
+        }
+        else if (normalizedWrench(i) < -1) {
+            normalizedWrench[i] = -1;
+        }
+    }
+    // Limit the thrust to [0,1]
+    if (normalizedWrench[3] > 1){
+        normalizedWrench[3] = 1;
+    }
+    else if (normalizedWrench[3] < 0) {
+        normalizedWrench[3] = 0;
+    }
+    return normalizedWrench;
 }

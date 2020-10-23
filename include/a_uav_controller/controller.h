@@ -13,7 +13,7 @@ public:
     controller();
     void computeAllocationMatrix();
     void calculateRotorVelocities(Eigen::VectorXd* rotor_velocities) const;
-    void calculateActCmds(Eigen::VectorXd* ActCmds) const;
+    void calculateActCmds(Eigen::VectorXd *ActCmds);
     void setOdometry(const mav_msgs::EigenOdometry& odometry);
     void setTrajectoryPoint(
             const mav_msgs::EigenTrajectoryPoint& command_trajectory);
@@ -36,7 +36,7 @@ private:
     Eigen::MatrixX4d thrust_and_torque_to_rotor_velocities_;
     mav_msgs::EigenTrajectoryPoint command_trajectory_;
     mav_msgs::EigenOdometry odometry_;
-
+    Eigen::Vector4d normalizeActCmds (Eigen::Vector4d *wrench);
     void computeTrajectoryTracking(double* T, Eigen::Vector3d* B_z_d) const;
     void computeAttitudeTracking(const Eigen::Vector3d& B_z_d,
                                  Eigen::Vector3d* tau) const;
