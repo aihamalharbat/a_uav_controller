@@ -5,63 +5,62 @@
 #include "../include/a_uav_controller/controller.h"
 #include "ros/ros.h"
 
-// MAV parameters.
-const double kMass = 1.725;
-const double kArmLength = 0.343;    // xyz = 0.13 -0.22 0.023
-const Eigen::Vector3d kInertiaDiag =
-        Eigen::Vector3d(0.029125, 0.029125, 0.055225);
-const double kMomentConstant = 1.6e-2;
-const double kThrustConstant = 8.568e-6;
-const double kGravity = 9.81;
 
 controller::controller() : controller_active_(false) {
     ros::NodeHandle priv_nh("~");
     // Read parameters
     // TODO: Dynamic reconfiguration
-    Eigen::Vector3d K_p;
-    Eigen::Vector3d K_v;
-    Eigen::Vector3d K_att;
-    Eigen::Vector3d K_rate;
-    if (!priv_nh.getParam("controller/position_gain/x", K_p[0])){
+    if (!priv_nh.getParam("controller/position_gain/x", kPositionGain[0])){
         ROS_ERROR("Could not find topic  parameter!");
     }
-    if (!priv_nh.getParam("controller/position_gain/y", K_p[1])){
+    if (!priv_nh.getParam("controller/position_gain/y", kPositionGain[1])){
         ROS_ERROR("Could not find topic  parameter!");
     }
-    if (!priv_nh.getParam("controller/position_gain/z", K_p[2])){
+    if (!priv_nh.getParam("controller/position_gain/z", kPositionGain[2])){
         ROS_ERROR("Could not find topic  parameter!");
     }
-    if (!priv_nh.getParam("controller/velocity_gain/x", K_v[0])){
+    if (!priv_nh.getParam("controller/velocity_gain/x", kVelocityGain[0])){
         ROS_ERROR("Could not find topic  parameter!");
     }
-    if (!priv_nh.getParam("controller/velocity_gain/y", K_v[1])){
+    if (!priv_nh.getParam("controller/velocity_gain/y", kVelocityGain[1])){
         ROS_ERROR("Could not find topic  parameter!");
     }
-    if (!priv_nh.getParam("controller/velocity_gain/z", K_v[2])){
+    if (!priv_nh.getParam("controller/velocity_gain/z", kVelocityGain[2])){
         ROS_ERROR("Could not find topic  parameter!");
     }
-    if (!priv_nh.getParam("controller/attitude_gain/x", K_att[0])){
+    if (!priv_nh.getParam("controller/attitude_gain/x", kAttitudeGain[0])){
         ROS_ERROR("Could not find topic  parameter!");
     }
-    if (!priv_nh.getParam("controller/attitude_gain/y", K_att[1])){
+    if (!priv_nh.getParam("controller/attitude_gain/y", kAttitudeGain[1])){
         ROS_ERROR("Could not find topic  parameter!");
     }
-    if (!priv_nh.getParam("controller/attitude_gain/z", K_att[2])){
+    if (!priv_nh.getParam("controller/attitude_gain/z", kAttitudeGain[2])){
         ROS_ERROR("Could not find topic  parameter!");
     }
-    if (!priv_nh.getParam("controller/rate_gain/x", K_rate[0])){
+    if (!priv_nh.getParam("controller/rate_gain/x", kAngularRateGain[0])){
         ROS_ERROR("Could not find topic  parameter!");
     }
-    if (!priv_nh.getParam("controller/rate_gain/y", K_rate[1])){
+    if (!priv_nh.getParam("controller/rate_gain/y", kAngularRateGain[1])){
         ROS_ERROR("Could not find topic  parameter!");
     }
-    if (!priv_nh.getParam("controller/rate_gain/z", K_rate[2])){
+    if (!priv_nh.getParam("controller/rate_gain/z", kAngularRateGain[2])){
         ROS_ERROR("Could not find topic  parameter!");
     }
-    setKPositionGain(K_p);
-    setKVelocityGain(K_v);
-    setKAttitudeGain(K_att);
-    setKAngularRateGain(K_rate);
+    if (!priv_nh.getParam("uav_parameters/mass", kMass)){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("uav_parameters/inertia/x", kInertiaDiag[0])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("uav_parameters/inertia/y", kInertiaDiag[1])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("uav_parameters/inertia/z", kInertiaDiag[2])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("uav_parameters/gravity", kGravity)){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
 }
 
 void controller::computeAllocationMatrix() {
@@ -304,25 +303,8 @@ void controller::computeAttitudeTracking(const Eigen::Vector3d &B_z_d, Eigen::Ve
     // *tau = TODO
     //ENDUNCOMMENT
     //STARTRM
-    *tau = -kAttitudeGain.cwiseProduct(e_R) -
-           kAngularRateGain.cwiseProduct(e_omega) +
-           omega.cross(kInertiaDiag.asDiagonal() * omega);
+    *tau = -kAttitudeGain.cwiseProduct(e_R)
+            - kAngularRateGain.cwiseProduct(e_omega)
+            + omega.cross(kInertiaDiag.asDiagonal() * omega);
     //ENDRM
-}
-
-//  Setters
-void controller::setKPositionGain(const Eigen::Vector3d &kPositionGainvar) {
-    controller::kPositionGain = kPositionGainvar / kMass;
-}
-
-void controller::setKVelocityGain(const Eigen::Vector3d &kVelocityGain) {
-    controller::kVelocityGain = kVelocityGain / kMass;
-}
-
-void controller::setKAttitudeGain(const Eigen::Vector3d &kAttitudeGain) {
-    controller::kAttitudeGain = kAttitudeGain;
-}
-
-void controller::setKAngularRateGain(const Eigen::Vector3d &kAngularRateGain) {
-    controller::kAngularRateGain = kAngularRateGain;
 }
