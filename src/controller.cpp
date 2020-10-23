@@ -325,17 +325,7 @@ Eigen::Vector4d controller::normalizeActCmds(Eigen::Vector4d *wrench) {
 //    max_y_torque = 2 * max_force * y_position
 //    max_thrust = 4 * max_force
 //    max_yaw_torque = 4 * K_moment * max_force
-    // TODO: move _max_ to static parameters
-    // Iris
-    double _max_roll_torque = 1.8373;
-    double _max_pitch_torque = 3.1092;
-    double _max_yaw_torque = 1;
-    double _max_thrust = 28.2656;
-    // Peach
-//    double _max_roll_torque = 13.1736;
-//    double _max_pitch_torque =  11.4098;
-//    double _max_yaw_torque = 1;
-//    double _max_thrust = 115.4058;
+
     // Normalize
     normalizedWrench[0] = (*wrench)[0] / _max_roll_torque;      // normalize roll torque
     normalizedWrench[1] = (*wrench)[1] / _max_pitch_torque;     // normalize pitch torque

@@ -28,6 +28,10 @@ private:
     double kMomentConstant;
     double kThrustConstant;
     double kGravity;
+    double _max_roll_torque;
+    double _max_pitch_torque;
+    double _max_yaw_torque;
+    double _max_thrust;
     // Controller Parameters
     Eigen::Vector3d kPositionGain;
     Eigen::Vector3d kVelocityGain;
