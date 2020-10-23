@@ -1,0 +1,14 @@
+uav_parameters:
+  mass: 1.725
+  arm_length: 0.343;    #xyz = 0.13 -0.22 0.023
+  inertia:
+    x: 0.029125
+    y: 0.029125
+    z: 0.055225
+  #kMomentConstant: 1.6e-2
+  #kThrustConstant: 8.568e-6
+  gravity: 9.81
+  max_roll_torque: 13.1736
+  max_pitch_torque:  11.4098
+  max_yaw_torque: 1
+  max_thrust: 115.4058
