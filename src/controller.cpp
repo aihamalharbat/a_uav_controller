@@ -365,3 +365,19 @@ void controller::getParameters(){
         ROS_ERROR("Could not find topic  parameter!");
     }
 }
+
+void controller::setKPositionGain(const Eigen::Vector3d &kPositionGain) {
+    controller::kPositionGain = kPositionGain;
+}
+
+void controller::setKVelocityGain(const Eigen::Vector3d &kVelocityGain) {
+    controller::kVelocityGain = kVelocityGain;
+}
+
+void controller::setKAttitudeGain(const Eigen::Vector3d &kAttitudeGain) {
+    controller::kAttitudeGain = kAttitudeGain;
+}
+
+void controller::setKAngularRateGain(const Eigen::Vector3d &kAngularRateGain) {
+    controller::kAngularRateGain = kAngularRateGain;
+}
