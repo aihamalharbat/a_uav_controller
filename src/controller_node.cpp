@@ -251,11 +251,23 @@ void controller_node::OdometryCallbackV2(                                       
         actuator_msg->controls[2] = 0;//ActCmds[2];
         actuator_msg->controls[3] = ActCmds[3];
         actuator_msg->header.stamp = odometry_msg->header.stamp;
-    // Debug message
-    ROS_INFO("Pre-Published! (from V2)");                           // Working till here
-    //  Publish Actuators message
+        // Debug message
+        ROS_INFO("Tau_x = %f", ActCmds[0]);
+        ROS_INFO("Tau_y = %f", ActCmds[1]);
+        ROS_INFO("Tau_z = %f", ActCmds[2]);
+        ROS_INFO("Thrust = %f", ActCmds[3]);
+        //  Publish Actuators message
         ActCmds_pub_.publish(actuator_msg);
-    ROS_INFO("Published! (from V2)");
+
+//        // Testing this fixed act_msg
+//        mavros_msgs::ActuatorControl act_cmd;
+//        act_cmd.group_mix = 0;
+//        act_cmd.controls[0] = 0;
+//        act_cmd.controls[1] = 0;
+//        act_cmd.controls[2] = 0;
+//        act_cmd.controls[3] = 0;
+//        ActCmds_pub_.publish(act_cmd);
+//        ROS_INFO("Published! (from V2)");
     }
 }
 

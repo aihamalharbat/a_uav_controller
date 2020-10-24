@@ -107,6 +107,7 @@ void controller::calculateActCmds(
     computeAttitudeTracking(B_z_d, &tau);
 
     // Compute rotor speeds with allocation inverse.
+    // NOT DONE HERE! -AYHAM
     Eigen::Vector4d torque_thrust;
     torque_thrust << tau, T;
     Eigen::Vector4d normalized_torque_thrust;
@@ -137,7 +138,7 @@ void controller::computeTrajectoryTracking(double *T, Eigen::Vector3d *B_z_d) co
             odometry_.position_W - command_trajectory_.position_W;
     const Eigen::Vector3d e_v = I_v - command_trajectory_.velocity_W;
     Eigen::Vector3d I_a_ref = command_trajectory_.acceleration_W;
-
+    ROS_INFO("Z_ERROR: %f", e_p[2]);
     //STARTUNCOMMENT
     // TASK (Ex. 1.4.1): Compute the the desired acceleration in inertial
     // coordinates.
