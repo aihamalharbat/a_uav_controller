@@ -49,7 +49,8 @@ controller_node::controller_node() {
     command_timer_ = nh_.createTimer(
             ros::Duration(0), &controller_node::TimedCommandCallback, this,
             true, false);
-
+    // Initialize Dynamic Reconfigure
+    gainsServer.setCallback(boost::bind(&controller_node::dynamicReconfigureCallback, this, _1, _2));
     connected_ = false;
     secureConnection();
 }
@@ -250,13 +251,24 @@ void controller_node::OdometryCallbackV2(                                       
         actuator_msg->controls[2] = 0;//ActCmds[2];
         actuator_msg->controls[3] = ActCmds[3];
         actuator_msg->header.stamp = odometry_msg->header.stamp;
-    // Debug message
-    ROS_INFO("Pre-Published! (from V2)");                           // Working till here
-    //  Publish Actuators message
+        // Debug message
+        ROS_INFO("Tau_x = %f", ActCmds[0]);
+        ROS_INFO("Tau_y = %f", ActCmds[1]);
+        ROS_INFO("Tau_z = %f", ActCmds[2]);
+        ROS_INFO("Thrust = %f", ActCmds[3]);
+        //  Publish Actuators message
         ActCmds_pub_.publish(actuator_msg);
-    ROS_INFO("Published! (from V2)");
-    }
 
+//        // Testing this fixed act_msg
+//        mavros_msgs::ActuatorControl act_cmd;
+//        act_cmd.group_mix = 0;
+//        act_cmd.controls[0] = 0;
+//        act_cmd.controls[1] = 0;
+//        act_cmd.controls[2] = 0;
+//        act_cmd.controls[3] = 0;
+//        ActCmds_pub_.publish(act_cmd);
+//        ROS_INFO("Published! (from V2)");
+    }
 }
 
 void controller_node::stateCallBack(const mavros_msgs::State::ConstPtr& msg){
@@ -274,6 +286,15 @@ void controller_node::stateCallBack(const mavros_msgs::State::ConstPtr& msg){
     else {
         ROS_INFO("NOT OFFBOARD - State_msg.");
     }
+}
+
+void controller_node::dynamicReconfigureCallback(const a_uav_controller::parametersConfig &config,
+                                                               const uint32_t level) {
+    controller_.setKPositionGain(Eigen::Vector3d(config.K_p_x, config.K_p_y, config.K_p_z));
+    controller_.setKVelocityGain(Eigen::Vector3d(config.K_v_x, config.K_v_y, config.K_v_z));
+    controller_.setKAttitudeGain(Eigen::Vector3d(config.K_R_x, config.K_R_y, config.K_R_z));
+    controller_.setKAngularRateGain(Eigen::Vector3d(config.K_w_x, config.K_w_y, config.K_w_z));
+    ROS_INFO("Gains changed!");
 }
 
 int main(int argc, char** argv) {

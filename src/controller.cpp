@@ -107,6 +107,7 @@ void controller::calculateActCmds(
     computeAttitudeTracking(B_z_d, &tau);
 
     // Compute rotor speeds with allocation inverse.
+    // NOT DONE HERE! -AYHAM
     Eigen::Vector4d torque_thrust;
     torque_thrust << tau, T;
     Eigen::Vector4d normalized_torque_thrust;
@@ -137,7 +138,7 @@ void controller::computeTrajectoryTracking(double *T, Eigen::Vector3d *B_z_d) co
             odometry_.position_W - command_trajectory_.position_W;
     const Eigen::Vector3d e_v = I_v - command_trajectory_.velocity_W;
     Eigen::Vector3d I_a_ref = command_trajectory_.acceleration_W;
-
+    ROS_INFO("Z_ERROR: %f", e_p[2]);
     //STARTUNCOMMENT
     // TASK (Ex. 1.4.1): Compute the the desired acceleration in inertial
     // coordinates.
@@ -300,43 +301,6 @@ Eigen::Vector4d controller::normalizeActCmds(Eigen::Vector4d *wrench) {
 
 void controller::getParameters(){
     ros::NodeHandle priv_nh("~");
-    // TODO: move to dynamic reconfig
-    if (!priv_nh.getParam("controller/position_gain/x", kPositionGain[0])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/position_gain/y", kPositionGain[1])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/position_gain/z", kPositionGain[2])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/velocity_gain/x", kVelocityGain[0])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/velocity_gain/y", kVelocityGain[1])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/velocity_gain/z", kVelocityGain[2])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/attitude_gain/x", kAttitudeGain[0])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/attitude_gain/y", kAttitudeGain[1])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/attitude_gain/z", kAttitudeGain[2])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/rate_gain/x", kAngularRateGain[0])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/rate_gain/y", kAngularRateGain[1])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/rate_gain/z", kAngularRateGain[2])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
     if (!priv_nh.getParam("uav_parameters/mass", _uav_mass)){
         ROS_ERROR("Could not find topic  parameter!");
     }
@@ -364,4 +328,20 @@ void controller::getParameters(){
     if (!priv_nh.getParam("uav_parameters/max_thrust", _max_thrust)){
         ROS_ERROR("Could not find topic  parameter!");
     }
+}
+
+void controller::setKPositionGain(const Eigen::Vector3d &kPositionGain) {
+    controller::kPositionGain = kPositionGain;
+}
+
+void controller::setKVelocityGain(const Eigen::Vector3d &kVelocityGain) {
+    controller::kVelocityGain = kVelocityGain;
+}
+
+void controller::setKAttitudeGain(const Eigen::Vector3d &kAttitudeGain) {
+    controller::kAttitudeGain = kAttitudeGain;
+}
+
+void controller::setKAngularRateGain(const Eigen::Vector3d &kAngularRateGain) {
+    controller::kAngularRateGain = kAngularRateGain;
 }

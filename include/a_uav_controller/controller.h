@@ -17,7 +17,10 @@ public:
     void setOdometry(const mav_msgs::EigenOdometry& odometry);
     void setTrajectoryPoint(
             const mav_msgs::EigenTrajectoryPoint& command_trajectory);
-
+    void setKPositionGain(const Eigen::Vector3d &kPositionGain);
+    void setKVelocityGain(const Eigen::Vector3d &kVelocityGain);
+    void setKAttitudeGain(const Eigen::Vector3d &kAttitudeGain);
+    void setKAngularRateGain(const Eigen::Vector3d &kAngularRateGain);
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 private:
     bool controller_active_;
