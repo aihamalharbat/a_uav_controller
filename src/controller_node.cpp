@@ -257,9 +257,6 @@ void controller_node::OdometryCallbackV2(                                       
         ActCmds_pub_.publish(actuator_msg);
     ROS_INFO("Published! (from V2)");
     }
-
-}
-
 }
 
 void controller_node::stateCallBack(const mavros_msgs::State::ConstPtr& msg){
