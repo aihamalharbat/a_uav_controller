@@ -49,7 +49,8 @@ controller_node::controller_node() {
     command_timer_ = nh_.createTimer(
             ros::Duration(0), &controller_node::TimedCommandCallback, this,
             true, false);
-
+    // Initialize Dynamic Reconfigure
+    gainsServer.setCallback(boost::bind(&controller_node::dynamicReconfigureCallback, this, _1, _2));
     connected_ = false;
     secureConnection();
 }
@@ -276,6 +277,15 @@ void controller_node::stateCallBack(const mavros_msgs::State::ConstPtr& msg){
     else {
         ROS_INFO("NOT OFFBOARD - State_msg.");
     }
+}
+
+void controller_node::dynamicReconfigureCallback(const a_uav_controller::parametersConfig &config,
+                                                               const uint32_t level) {
+    controller_.setKPositionGain(Eigen::Vector3d(config.K_p_x, config.K_p_y, config.K_p_z));
+    controller_.setKVelocityGain(Eigen::Vector3d(config.K_v_x, config.K_v_y, config.K_v_z));
+    controller_.setKAttitudeGain(Eigen::Vector3d(config.K_R_x, config.K_R_y, config.K_R_z));
+    controller_.setKAngularRateGain(Eigen::Vector3d(config.K_w_x, config.K_w_y, config.K_w_z));
+    ROS_INFO("Gains changed!");
 }
 
 int main(int argc, char** argv) {

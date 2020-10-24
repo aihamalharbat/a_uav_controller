@@ -11,6 +11,8 @@
 #include <trajectory_msgs/MultiDOFJointTrajectory.h>
 #include "a_uav_controller/controller.h"
 #include "mavros_msgs/State.h"
+#include <dynamic_reconfigure/server.h>
+#include <a_uav_controller/parametersConfig.h>
 
 class controller_node {
 public:
@@ -33,6 +35,7 @@ private:
     // Services
     ros::ServiceClient arming_client_;
     ros::ServiceClient set_mode_client_;
+    dynamic_reconfigure::Server<a_uav_controller::parametersConfig> gainsServer;
 
     mav_msgs::EigenTrajectoryPointDeque commands_;
     std::deque<ros::Duration> command_waiting_times_;
@@ -50,6 +53,7 @@ private:
     void OdometryCallback(const nav_msgs::OdometryConstPtr& odometry_msg);
     void OdometryCallbackV2(const nav_msgs::OdometryConstPtr &odometry_msg);
     void stateCallBack(const mavros_msgs::State::ConstPtr& msg);
+    void dynamicReconfigureCallback(const a_uav_controller::parametersConfig&, const uint32_t);
 };
 
 
