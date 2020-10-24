@@ -9,5 +9,5 @@
 <node name="rqt_reconfig" pkg="rqt_reconfigure" type="rqt_reconfigure">
 
 </node>
-
+<node name="load_initial_gains" pkg="dynamic_reconfigure" type="dynparam" args="load /offB_Controller $(find a_uav_controller)/config/controller/initial_gains_$(arg vehicle).yaml"/>
 </launch>
