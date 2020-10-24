@@ -26,13 +26,13 @@ private:
     ros::Subscriber cmd_multi_dof_joint_trajectory_sub_;
     ros::Subscriber cmd_pose_sub_;
     ros::Subscriber odometry_sub_;
-    ros::Subscriber state_sub;
+    ros::Subscriber state_sub_;
     // Publishers
     ros::Publisher motor_velocity_reference_pub_;
     ros::Publisher ActCmds_pub_;
     // Services
-    ros::ServiceClient arming_client;
-    ros::ServiceClient set_mode_client;
+    ros::ServiceClient arming_client_;
+    ros::ServiceClient set_mode_client_;
 
     mav_msgs::EigenTrajectoryPointDeque commands_;
     std::deque<ros::Duration> command_waiting_times_;

@@ -28,8 +28,8 @@ void controller::computeAllocationMatrix() {
 
     //STARTRM
     Eigen::Vector4d k;  // Helper diagonal matrix.
-    k << kThrustConstant, kThrustConstant * kArmLength,
-            kThrustConstant * kArmLength, kMomentConstant * kThrustConstant;
+    k << _thrust_constant, _thrust_constant * _uav_arm_length,
+            _thrust_constant * _uav_arm_length, _moment_constant * _thrust_constant;
     const double kS = std::sin(30 * kDegToRad);
     const double kC = std::cos(30 * kDegToRad);
     A.resize(4, 6);
@@ -149,7 +149,7 @@ void controller::computeTrajectoryTracking(double *T, Eigen::Vector3d *B_z_d) co
 
     const Eigen::Vector3d I_a_d = -kPositionGain.cwiseProduct(e_p) -
                                   kVelocityGain.cwiseProduct(e_v) +
-                                  kGravity * Eigen::Vector3d::UnitZ() + I_a_ref;
+                                  _gravity * Eigen::Vector3d::UnitZ() + I_a_ref;
     //ENDRM
 
     //STARTUNCOMMENT
@@ -159,7 +159,7 @@ void controller::computeTrajectoryTracking(double *T, Eigen::Vector3d *B_z_d) co
     // *T = TODO
     //ENDUNCOMMENT
     //STARTRM
-    *T = kMass * I_a_d.dot(R_I_B.col(2));
+    *T = _uav_mass * I_a_d.dot(R_I_B.col(2));
     //ENDRM
 
     //STARTUNCOMMENT
@@ -253,7 +253,7 @@ void controller::computeAttitudeTracking(const Eigen::Vector3d &B_z_d, Eigen::Ve
     //STARTRM
     *tau = -kAttitudeGain.cwiseProduct(e_R)
             - kAngularRateGain.cwiseProduct(e_omega)
-            + omega.cross(kInertiaDiag.asDiagonal() * omega);
+            + omega.cross(_inertia_matrix.asDiagonal() * omega);
     //ENDRM
 }
 Eigen::Vector4d controller::normalizeActCmds(Eigen::Vector4d *wrench) {
@@ -337,19 +337,19 @@ void controller::getParameters(){
     if (!priv_nh.getParam("controller/rate_gain/z", kAngularRateGain[2])){
         ROS_ERROR("Could not find topic  parameter!");
     }
-    if (!priv_nh.getParam("uav_parameters/mass", kMass)){
+    if (!priv_nh.getParam("uav_parameters/mass", _uav_mass)){
         ROS_ERROR("Could not find topic  parameter!");
     }
-    if (!priv_nh.getParam("uav_parameters/inertia/x", kInertiaDiag[0])){
+    if (!priv_nh.getParam("uav_parameters/inertia/x", _inertia_matrix[0])){
         ROS_ERROR("Could not find topic  parameter!");
     }
-    if (!priv_nh.getParam("uav_parameters/inertia/y", kInertiaDiag[1])){
+    if (!priv_nh.getParam("uav_parameters/inertia/y", _inertia_matrix[1])){
         ROS_ERROR("Could not find topic  parameter!");
     }
-    if (!priv_nh.getParam("uav_parameters/inertia/z", kInertiaDiag[2])){
+    if (!priv_nh.getParam("uav_parameters/inertia/z", _inertia_matrix[2])){
         ROS_ERROR("Could not find topic  parameter!");
     }
-    if (!priv_nh.getParam("uav_parameters/gravity", kGravity)){
+    if (!priv_nh.getParam("uav_parameters/gravity", _gravity)){
         ROS_ERROR("Could not find topic  parameter!");
     }
     if (!priv_nh.getParam("uav_parameters/max_roll_torque", _max_roll_torque)){

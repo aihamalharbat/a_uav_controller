@@ -22,12 +22,12 @@ public:
 private:
     bool controller_active_;
     // UAV Parameter
-    double kMass;
-    double kArmLength;
-    Eigen::Vector3d kInertiaDiag;
-    double kMomentConstant;
-    double kThrustConstant;
-    double kGravity;
+    double _uav_mass;
+    double _uav_arm_length;
+    Eigen::Vector3d _inertia_matrix;
+    double _moment_constant;
+    double _thrust_constant;
+    double _gravity;
     double _max_roll_torque;
     double _max_pitch_torque;
     double _max_yaw_torque;

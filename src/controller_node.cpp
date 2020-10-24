@@ -18,9 +18,9 @@
 controller_node::controller_node() {
     ros::NodeHandle nh;
     // Services and connection
-    arming_client = nh.serviceClient<mavros_msgs::CommandBool>
+    arming_client_ = nh.serviceClient<mavros_msgs::CommandBool>
             ("mavros/cmd/arming");
-    set_mode_client = nh.serviceClient<mavros_msgs::SetMode>
+    set_mode_client_ = nh.serviceClient<mavros_msgs::SetMode>
             ("mavros/set_mode");
     // Subscriptions:
     cmd_pose_sub_ =nh_.subscribe(                                               // Read command
@@ -35,7 +35,7 @@ controller_node::controller_node() {
             "/mavros/odometry/in", 1,
             &controller_node::OdometryCallbackV2, this);
 
-    state_sub = nh.subscribe<mavros_msgs::State>                                // Read Statues
+    state_sub_ = nh.subscribe<mavros_msgs::State>                                // Read Statues
             ("mavros/state", 10,
              &controller_node::stateCallBack, this);
 
@@ -110,15 +110,15 @@ void controller_node::secureConnection() {
 //    }
     while (current_state_.mode != "OFFBOARD" && !current_state_.armed ){
         if (current_state_.mode != "OFFBOARD" &&
-            set_mode_client.exists() &&
-            set_mode_client.isValid()){
-            set_mode_client.call(offb_set_mode);
+            set_mode_client_.exists() &&
+            set_mode_client_.isValid()){
+            set_mode_client_.call(offb_set_mode);
             ROS_INFO_ONCE("Offboard enabled");
         }
         if (!current_state_.armed &&
-            arming_client.exists() &&
-            arming_client.isValid()){
-            arming_client.call(arm_cmd);
+            arming_client_.exists() &&
+            arming_client_.isValid()){
+            arming_client_.call(arm_cmd);
             ROS_INFO_ONCE("Vehicle armed");
         }
         ros::spinOnce();
