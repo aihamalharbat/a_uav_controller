@@ -259,8 +259,6 @@ void controller_node::OdometryCallbackV2(                                       
 
 }
 
-}
-
 void controller_node::stateCallBack(const mavros_msgs::State::ConstPtr& msg){
     current_state_ = *msg;
     if (msg->armed){
