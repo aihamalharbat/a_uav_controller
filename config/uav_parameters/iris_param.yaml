@@ -10,5 +10,5 @@ uav_parameters:
   gravity: 9.81
   max_roll_torque: 1.8373
   max_pitch_torque: 3.1092
-  max_yaw_torque: 1
+  max_yaw_torque: 1         # place-holder
   max_thrust: 28.2656

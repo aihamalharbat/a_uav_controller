@@ -1,20 +1,20 @@
 controller:
   position_gain:
-    x: 10
-    y: 10
-    z: 200
+    x: 1
+    y: 1
+    z: 80
   velocity_gain:
     x: 0.7
     y: 0.7
-    z: 50
+    z: 16
   attitude_gain:
     x: 0.5
     y: 0.5
-    z: 0035
+    z: 0.0035
   rate_gain:
     x: 0.5
     y: 0.5
-    z: 025
+    z: 0.025
 #    // TODO: move these controller parameters to dynamic reconfig file
 
 #    // The baseline gains 1 - Oct 21 2020 - Peach
