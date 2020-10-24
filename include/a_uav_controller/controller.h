@@ -44,7 +44,7 @@ private:
     void computeTrajectoryTracking(double* T, Eigen::Vector3d* B_z_d) const;
     void computeAttitudeTracking(const Eigen::Vector3d& B_z_d,
                                  Eigen::Vector3d* tau) const;
-
+    void getParameters();
 
 };
 

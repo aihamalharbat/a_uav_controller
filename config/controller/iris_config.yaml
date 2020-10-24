@@ -10,7 +10,7 @@ controller:
   attitude_gain:
     x: 0.1
     y: 0.1
-    z: 0035
+    z: 0.0035
   rate_gain:
     x: 0.1
     y: 0.1

@@ -7,60 +7,7 @@
 
 
 controller::controller() : controller_active_(false) {
-    ros::NodeHandle priv_nh("~");
-    // Read parameters
-    // TODO: Dynamic reconfiguration
-    if (!priv_nh.getParam("controller/position_gain/x", kPositionGain[0])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/position_gain/y", kPositionGain[1])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/position_gain/z", kPositionGain[2])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/velocity_gain/x", kVelocityGain[0])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/velocity_gain/y", kVelocityGain[1])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/velocity_gain/z", kVelocityGain[2])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/attitude_gain/x", kAttitudeGain[0])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/attitude_gain/y", kAttitudeGain[1])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/attitude_gain/z", kAttitudeGain[2])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/rate_gain/x", kAngularRateGain[0])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/rate_gain/y", kAngularRateGain[1])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("controller/rate_gain/z", kAngularRateGain[2])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("uav_parameters/mass", kMass)){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("uav_parameters/inertia/x", kInertiaDiag[0])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("uav_parameters/inertia/y", kInertiaDiag[1])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("uav_parameters/inertia/z", kInertiaDiag[2])){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
-    if (!priv_nh.getParam("uav_parameters/gravity", kGravity)){
-        ROS_ERROR("Could not find topic  parameter!");
-    }
+    getParameters();
 }
 
 void controller::computeAllocationMatrix() {
@@ -349,4 +296,72 @@ Eigen::Vector4d controller::normalizeActCmds(Eigen::Vector4d *wrench) {
         normalizedWrench[3] = 0;
     }
     return normalizedWrench;
+}
+
+void controller::getParameters(){
+    ros::NodeHandle priv_nh("~");
+    // TODO: move to dynamic reconfig
+    if (!priv_nh.getParam("controller/position_gain/x", kPositionGain[0])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/position_gain/y", kPositionGain[1])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/position_gain/z", kPositionGain[2])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/velocity_gain/x", kVelocityGain[0])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/velocity_gain/y", kVelocityGain[1])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/velocity_gain/z", kVelocityGain[2])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/attitude_gain/x", kAttitudeGain[0])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/attitude_gain/y", kAttitudeGain[1])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/attitude_gain/z", kAttitudeGain[2])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/rate_gain/x", kAngularRateGain[0])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/rate_gain/y", kAngularRateGain[1])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("controller/rate_gain/z", kAngularRateGain[2])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("uav_parameters/mass", kMass)){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("uav_parameters/inertia/x", kInertiaDiag[0])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("uav_parameters/inertia/y", kInertiaDiag[1])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("uav_parameters/inertia/z", kInertiaDiag[2])){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("uav_parameters/gravity", kGravity)){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("uav_parameters/max_roll_torque", _max_roll_torque)){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("uav_parameters/max_pitch_torque", _max_pitch_torque)){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("uav_parameters/max_yaw_torque", _max_yaw_torque)){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
+    if (!priv_nh.getParam("uav_parameters/max_thrust", _max_thrust)){
+        ROS_ERROR("Could not find topic  parameter!");
+    }
 }
