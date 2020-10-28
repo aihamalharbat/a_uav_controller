@@ -294,7 +294,12 @@ void controller_node::dynamicReconfigureCallback(const a_uav_controller::paramet
     controller_.setKVelocityGain(Eigen::Vector3d(config.K_v_x, config.K_v_y, config.K_v_z));
     controller_.setKAttitudeGain(Eigen::Vector3d(config.K_R_x, config.K_R_y, config.K_R_z));
     controller_.setKAngularRateGain(Eigen::Vector3d(config.K_w_x, config.K_w_y, config.K_w_z));
+    setThrust(config.Thrust);
     ROS_INFO("Gains changed!");
+}
+
+void controller_node::setThrust(double thrust) {
+    controller_node::thrust = thrust;
 }
 
 int main(int argc, char** argv) {

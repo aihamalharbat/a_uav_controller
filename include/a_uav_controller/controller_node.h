@@ -54,6 +54,9 @@ private:
     void OdometryCallbackV2(const nav_msgs::OdometryConstPtr &odometry_msg);
     void stateCallBack(const mavros_msgs::State::ConstPtr& msg);
     void dynamicReconfigureCallback(const a_uav_controller::parametersConfig&, const uint32_t);
+    double thrust;
+public:
+    void setThrust(double thrust);
 };
 
 
