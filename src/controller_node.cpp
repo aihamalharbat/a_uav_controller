@@ -246,10 +246,10 @@ void controller_node::OdometryCallbackV2(                                       
         //  prepare actuators message
         mavros_msgs::ActuatorControlPtr actuator_msg(new mavros_msgs::ActuatorControl);
         actuator_msg->group_mix = 0;
-        actuator_msg->controls[0] = ActCmds[0];
-        actuator_msg->controls[1] = - ActCmds[1];
+        actuator_msg->controls[0] = xToruqe;
+        actuator_msg->controls[1] = yToruqe;
         actuator_msg->controls[2] = 0;//ActCmds[2];
-        actuator_msg->controls[3] = ActCmds[3];
+        actuator_msg->controls[3] = thrust;
         actuator_msg->header.stamp = odometry_msg->header.stamp;
         // Debug message
         ROS_INFO("Tau_x = %f", ActCmds[0]);
