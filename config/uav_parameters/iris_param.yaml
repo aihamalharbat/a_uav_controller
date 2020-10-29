@@ -13,17 +13,4 @@ uav_parameters:
   max_yaw_torque: 1         # place-holder
   max_thrust: 28.2656
 # How to get the max values?
-# run this Matlab script while changing:
-#     K_motor, K_moment, max_vel
-# Matlab Script:
-#  %   From iris.sdf
-#  x_position = 0.13;
-#  y_position = 0.22;
-#  K_motor = 5.84e-06;
-#  K_moment = 0.06;
-#  max_vel = 1100;     % rad/s
-#  max_force = K_motor * (max_vel^2)
-#  max_x_torque = 2 * max_force * x_position
-#  max_y_torque = 2 * max_force * y_position
-#  max_thrust = 4 * max_force
-#  max_yaw_torque = 4 * K_moment * max_force
+# run this Matlab script "iris_max_thurst_torque.m"
