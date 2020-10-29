@@ -55,8 +55,12 @@ private:
     void stateCallBack(const mavros_msgs::State::ConstPtr& msg);
     void dynamicReconfigureCallback(const a_uav_controller::parametersConfig&, const uint32_t);
     double thrust;
+    double xToruqe;
+    double yToruqe;
 public:
     void setThrust(double thrust);
+    void setXToruqe(double xToruqe);
+    void setYToruqe(double yToruqe);
 };
 
 

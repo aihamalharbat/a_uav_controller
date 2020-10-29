@@ -295,11 +295,21 @@ void controller_node::dynamicReconfigureCallback(const a_uav_controller::paramet
     controller_.setKAttitudeGain(Eigen::Vector3d(config.K_R_x, config.K_R_y, config.K_R_z));
     controller_.setKAngularRateGain(Eigen::Vector3d(config.K_w_x, config.K_w_y, config.K_w_z));
     setThrust(config.Thrust);
+    setXToruqe(config.xTorque);
+    setYToruqe(config.yTorque);
     ROS_INFO("Gains changed!");
 }
 
 void controller_node::setThrust(double thrust) {
     controller_node::thrust = thrust;
+}
+
+void controller_node::setXToruqe(double xToruqe) {
+    controller_node::xToruqe = xToruqe;
+}
+
+void controller_node::setYToruqe(double yToruqe) {
+    controller_node::yToruqe = yToruqe;
 }
 
 int main(int argc, char** argv) {
