@@ -38,6 +38,8 @@ controller_node::controller_node() {
     state_sub_ = nh.subscribe<mavros_msgs::State>                                // Read Statues
             ("mavros/state", 10,
              &controller_node::stateCallBack, this);
+    rotors_vel_sub_ = nh.subscribe("/gazebo/link_states",
+                                   10, &controller_node::rotorsVelCallBack, this);
 
     // Publications:
     motor_velocity_reference_pub_ = nh_.advertise<mav_msgs::Actuators>(         // Not used
@@ -311,6 +313,14 @@ void controller_node::setXToruqe(double xToruqe) {
 void controller_node::setYToruqe(double yToruqe) {
     controller_node::yToruqe = yToruqe;
 }
+
+void controller_node::rotorsVelCallBack(const gazebo_msgs::LinkStatesConstPtr &linkStates_msg) {
+    ROS_INFO("Velocity of rotor_3 = %f", linkStates_msg->twist[5].angular.z);
+    ROS_INFO("Velocity of rotor_5 = %f", linkStates_msg->twist[6].angular.z);
+    ROS_INFO("Velocity of rotor_4 = %f", linkStates_msg->twist[7].angular.z);
+    ROS_INFO("Velocity of rotor_2 = %f", linkStates_msg->twist[8].angular.z);
+    ROS_INFO("Velocity of rotor_1 = %f", linkStates_msg->twist[9].angular.z);
+    ROS_INFO("Velocity of rotor_0 = %f", linkStates_msg->twist[10].angular.z);}
 
 int main(int argc, char** argv) {
     ros::init(argc, argv, "controller_node");

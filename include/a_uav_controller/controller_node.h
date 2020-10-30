@@ -11,6 +11,7 @@
 #include <trajectory_msgs/MultiDOFJointTrajectory.h>
 #include "a_uav_controller/controller.h"
 #include "mavros_msgs/State.h"
+#include "gazebo_msgs/LinkStates.h"
 #include <dynamic_reconfigure/server.h>
 #include <a_uav_controller/parametersConfig.h>
 
@@ -29,6 +30,7 @@ private:
     ros::Subscriber cmd_pose_sub_;
     ros::Subscriber odometry_sub_;
     ros::Subscriber state_sub_;
+    ros::Subscriber rotors_vel_sub_;
     // Publishers
     ros::Publisher motor_velocity_reference_pub_;
     ros::Publisher ActCmds_pub_;
@@ -54,6 +56,7 @@ private:
     void OdometryCallbackV2(const nav_msgs::OdometryConstPtr &odometry_msg);
     void stateCallBack(const mavros_msgs::State::ConstPtr& msg);
     void dynamicReconfigureCallback(const a_uav_controller::parametersConfig&, const uint32_t);
+    void rotorsVelCallBack (const gazebo_msgs::LinkStatesConstPtr& linkStates_msg);
     double thrust;
     double xToruqe;
     double yToruqe;
