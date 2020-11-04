@@ -9,9 +9,9 @@ uav_parameters:
   #kThrustConstant: 8.568e-6
   gravity: 9.81
   # TODO move this calculation to the controller class
-  max_roll_torque: 13.1736
-  max_pitch_torque:  11.4098
+  max_roll_torque: 14.1627
+  max_pitch_torque:  12.2665
   max_yaw_torque: 1         # place-holder, not correct
-  max_thrust: 115.4058
+  max_thrust: 124.0710
 # How to get the max values?
 # run this Matlab script "peach_max_thurst_torque.m"
