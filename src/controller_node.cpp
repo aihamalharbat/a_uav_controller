@@ -247,8 +247,8 @@ void controller_node::OdometryCallbackV2(                                       
         mavros_msgs::ActuatorControlPtr actuator_msg(new mavros_msgs::ActuatorControl);
         actuator_msg->group_mix = 0;
         actuator_msg->controls[0] = ActCmds[0];
-        actuator_msg->controls[1] = - ActCmds[1];
-        actuator_msg->controls[2] = 0;//ActCmds[2];
+        actuator_msg->controls[1] = - ActCmds[1];   // minus sign because PX4 uses NED frame
+        actuator_msg->controls[2] = - ActCmds[2];   // minus sign because PX4 uses NED frame
         actuator_msg->controls[3] = ActCmds[3];
         actuator_msg->header.stamp = odometry_msg->header.stamp;
         // Debug message
@@ -258,16 +258,6 @@ void controller_node::OdometryCallbackV2(                                       
         ROS_INFO("Thrust = %f", ActCmds[3]);
         //  Publish Actuators message
         ActCmds_pub_.publish(actuator_msg);
-
-//        // Testing this fixed act_msg
-//        mavros_msgs::ActuatorControl act_cmd;
-//        act_cmd.group_mix = 0;
-//        act_cmd.controls[0] = 0;
-//        act_cmd.controls[1] = 0;
-//        act_cmd.controls[2] = 0;
-//        act_cmd.controls[3] = 0;
-//        ActCmds_pub_.publish(act_cmd);
-//        ROS_INFO("Published! (from V2)");
     }
 }
 
