@@ -135,7 +135,7 @@ void controller::computeTrajectoryTracking(double *T, Eigen::Vector3d *B_z_d) co
 
     // Compute translational tracking errors.
     const Eigen::Vector3d e_p =
-            odometry_.position_W - command_trajectory_.position_W;
+            (odometry_.position_W - initial_position) - command_trajectory_.position_W;
     const Eigen::Vector3d e_v = I_v - command_trajectory_.velocity_W;
     Eigen::Vector3d I_a_ref = command_trajectory_.acceleration_W;
     ROS_INFO("Z_ERROR: %f", e_p[2]);
@@ -344,4 +344,8 @@ void controller::setKAttitudeGain(const Eigen::Vector3d &kAttitudeGain) {
 
 void controller::setKAngularRateGain(const Eigen::Vector3d &kAngularRateGain) {
     controller::kAngularRateGain = kAngularRateGain;
+}
+
+void controller::setInitialPosition(const Eigen::Vector3d &initialPosition) {
+    initial_position = initialPosition;
 }

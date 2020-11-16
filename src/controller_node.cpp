@@ -233,6 +233,15 @@ void controller_node::OdometryCallback(                                     // r
 void controller_node::OdometryCallbackV2(                                       // read odometry and take action
         const nav_msgs::OdometryConstPtr& odometry_msg) {                       // THE MAIN connection to controller class
     if (connected_) {
+        if (first_msg){
+            Eigen::Vector3d initial_xyz;
+            initial_xyz.x() = odometry_msg->pose.pose.position.x;
+            initial_xyz.y() = odometry_msg->pose.pose.position.y;
+            initial_xyz.z() = odometry_msg->pose.pose.position.z;
+            controller_.setInitialPosition(initial_xyz);
+            first_msg = false;
+            ROS_INFO("Initial Position Set.");
+        }
         //  Debug message
         ROS_INFO_ONCE("Controller got first odometry message.");
         // send odometry to controller_ obj

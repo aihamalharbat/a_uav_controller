@@ -43,6 +43,7 @@ private:
     mavros_msgs::State current_state_;
 
     bool connected_ = false;
+    bool first_msg = true;
     void secureConnection();
     // CallBacks
     void CommandPoseCallback(const geometry_msgs::PoseStampedConstPtr& pose_msg);

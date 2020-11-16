@@ -21,9 +21,11 @@ public:
     void setKVelocityGain(const Eigen::Vector3d &kVelocityGain);
     void setKAttitudeGain(const Eigen::Vector3d &kAttitudeGain);
     void setKAngularRateGain(const Eigen::Vector3d &kAngularRateGain);
+    void setInitialPosition(const Eigen::Vector3d &initialPosition);
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 private:
     bool controller_active_;
+    Eigen::Vector3d initial_position;
     // UAV Parameter
     double _uav_mass;
     double _uav_arm_length;
