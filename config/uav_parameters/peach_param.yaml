@@ -1,5 +1,5 @@
 uav_parameters:
-  mass: 3.506          #2.534 + 0.015 IMU + 0.0474 6 motors
+  mass: 3.533          
   arm_length: 0.343;    #xyz = 0.13 -0.22 0.023
   inertia:
     x: 0.11704605
