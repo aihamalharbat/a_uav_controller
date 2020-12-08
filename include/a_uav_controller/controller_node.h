@@ -51,8 +51,7 @@ private:
     void MultiDofJointTrajectoryCallback(
             const trajectory_msgs::MultiDOFJointTrajectoryConstPtr&
             trajectory_reference_msg);
-    void OdometryCallback(const nav_msgs::OdometryConstPtr& odometry_msg);
-    void OdometryCallbackV2(const nav_msgs::OdometryConstPtr &odometry_msg);
+    void OdometryCallback(const nav_msgs::OdometryConstPtr &odometry_msg);
     void stateCallBack(const mavros_msgs::State::ConstPtr& msg);
     void dynamicReconfigureCallback(const a_uav_controller::parametersConfig&, const uint32_t);
 };

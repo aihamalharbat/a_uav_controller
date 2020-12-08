@@ -32,8 +32,8 @@ controller_node::controller_node() {
             &controller_node::MultiDofJointTrajectoryCallback, this);
 
     odometry_sub_ =nh_.subscribe(                                               // Read odometry
-            "/mavros/odometry/in", 1,
-            &controller_node::OdometryCallbackV2, this);
+            "/opti_adapter/hyb_odometry", 1,
+            &controller_node::OdometryCallback, this);
 
     state_sub_ = nh.subscribe<mavros_msgs::State>                                // Read Statues
             ("mavros/state", 10,
@@ -204,36 +204,11 @@ void controller_node::TimedCommandCallback(const ros::TimerEvent& e) {
     }
 }
 
-void controller_node::OdometryCallback(                                     // read odometry and take action
-        const nav_msgs::OdometryConstPtr& odometry_msg) {                   // THE MAIN connection to controller class
-
-    //  Debug message
-    ROS_INFO_ONCE("Controller got first odometry message.");
-    // send odometry to controller_ obj
-    mav_msgs::EigenOdometry odometry;
-    mav_msgs::eigenOdometryFromMsg(*odometry_msg, &odometry);
-    controller_.setOdometry(odometry);
-    //  calculate controller output
-    Eigen::VectorXd ref_rotor_velocities;
-    controller_.calculateRotorVelocities(&ref_rotor_velocities);
-
-    /* Todo(ffurrer): Do this in the conversions header. */
-    //  prepare actuators message
-    mav_msgs::ActuatorsPtr actuator_msg(new mav_msgs::Actuators);
-    actuator_msg->angular_velocities.clear();
-    for (int i = 0; i < ref_rotor_velocities.size(); i++) {
-        actuator_msg->angular_velocities.push_back(ref_rotor_velocities[i]);
-    }
-    actuator_msg->header.stamp = odometry_msg->header.stamp;
-    //  Publish Actuators message
-    motor_velocity_reference_pub_.publish(actuator_msg);
-    ROS_INFO("Published!");
-}
-
-void controller_node::OdometryCallbackV2(                                       // read odometry and take action
+void controller_node::OdometryCallback(                                       // read odometry and take action
         const nav_msgs::OdometryConstPtr& odometry_msg) {                       // THE MAIN connection to controller class
     if (connected_) {
         if (first_msg){
+            // Set the initial position
             Eigen::Vector3d initial_xyz;
             initial_xyz.x() = odometry_msg->pose.pose.position.x;
             initial_xyz.y() = odometry_msg->pose.pose.position.y;
