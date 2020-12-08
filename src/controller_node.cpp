@@ -64,7 +64,7 @@ void controller_node::secureConnection() {
         ros::spinOnce();
         rate.sleep();
     }
-    ROS_INFO("FCU connected!");
+    ROS_INFO("[controller-node] FCU connected!");
 
     // Fill the buffer
     mavros_msgs::ActuatorControl tempMsg;
@@ -78,7 +78,7 @@ void controller_node::secureConnection() {
         ros::spinOnce();                        //resposible to handle communication events, e.g. arriving messages
         rate.sleep();
     }
-    ROS_INFO_ONCE("Done filling buffer!");
+    ROS_INFO_ONCE("[controller-node] Done filling buffer!");
 
     /*  *********************************
      *              ARM & OFFOARD
@@ -89,7 +89,7 @@ void controller_node::secureConnection() {
     offb_set_mode.request.custom_mode = "OFFBOARD";
     mavros_msgs::CommandBool arm_cmd;
     arm_cmd.request.value = true;
-    ROS_INFO_ONCE("Start ARMING and OB.");
+    ROS_INFO_ONCE("[controller-node] Start ARMING and OB.");
 //    while (!current_state_.armed && current_state_.mode != "OFFBOARD"){
 //        if(set_mode_client.call(offb_set_mode) &&
 //            (offb_set_mode.response.mode_sent) &&
@@ -114,17 +114,17 @@ void controller_node::secureConnection() {
             set_mode_client_.exists() &&
             set_mode_client_.isValid()){
             set_mode_client_.call(offb_set_mode);
-            ROS_INFO_ONCE("Offboard enabled");
+            ROS_INFO_ONCE("[controller-node] Offboard enabled");
         }
         if (!current_state_.armed &&
             arming_client_.exists() &&
             arming_client_.isValid()){
             arming_client_.call(arm_cmd);
-            ROS_INFO_ONCE("Vehicle armed");
+            ROS_INFO_ONCE("[controller-node] Vehicle armed");
         }
         ros::spinOnce();
     }
-    ROS_INFO("Out of arming and OFFb loop");
+    ROS_INFO("[controller-node] Out of arming and OFFb loop");
     connected_ = true;
 }
 
@@ -140,7 +140,7 @@ void controller_node::CommandPoseCallback(
     mav_msgs::eigenTrajectoryPointFromPoseMsg(*pose_msg, &eigen_reference);
     commands_.push_front(eigen_reference);
 
-    ROS_INFO_ONCE("Controller got first command message.");
+    ROS_INFO_ONCE("[controller-node] Controller got first command message.");
     controller_.setTrajectoryPoint(commands_.front());          // Send the command to controller_ obj
     commands_.pop_front();
 }
@@ -156,7 +156,7 @@ void controller_node::MultiDofJointTrajectoryCallback(                          
 
     if (n_commands < 1) {
         ROS_WARN_STREAM(
-                "Got MultiDOFJointTrajectory message, but message has no points.");
+                "[controller-node] Got MultiDOFJointTrajectory message, but message has no points.");
         return;
     }
 
@@ -190,7 +190,7 @@ void controller_node::MultiDofJointTrajectoryCallback(                          
 
 void controller_node::TimedCommandCallback(const ros::TimerEvent& e) {
     if (commands_.empty()) {
-        ROS_WARN("Commands empty, this should not happen here");
+        ROS_WARN("[controller-node] Commands empty, this should not happen here");
         return;
     }
 
@@ -215,10 +215,10 @@ void controller_node::OdometryCallback(                                       //
             initial_xyz.z() = odometry_msg->pose.pose.position.z;
             controller_.setInitialPosition(initial_xyz);
             first_msg = false;
-            ROS_INFO("Initial Position Set.");
+            ROS_INFO("[controller-node] Initial Position Set.");
         }
         //  Debug message
-        ROS_INFO_ONCE("Controller got first odometry message.");
+        ROS_INFO_ONCE("[controller-node] Controller got first odometry message.");
         // send odometry to controller_ obj
         mav_msgs::EigenOdometry odometry;
         mav_msgs::eigenOdometryFromMsg(*odometry_msg, &odometry);
@@ -236,10 +236,10 @@ void controller_node::OdometryCallback(                                       //
         actuator_msg->controls[3] = ActCmds[3];
         actuator_msg->header.stamp = odometry_msg->header.stamp;
         // Debug message
-        ROS_INFO("Tau_x = %f", ActCmds[0]);
-        ROS_INFO("Tau_y = %f", ActCmds[1]);
-        ROS_INFO("Tau_z = %f", ActCmds[2]);
-        ROS_INFO("Thrust = %f", ActCmds[3]);
+        ROS_INFO_ONCE("[controller-node] Tau_x = %f", actuator_msg->controls[0]);
+        ROS_INFO_ONCE("[controller-node] Tau_y = %f", actuator_msg->controls[1]);
+        ROS_INFO_ONCE("[controller-node] Tau_z = %f", actuator_msg->controls[2]);
+        ROS_INFO_ONCE("[controller-node] Thrust = %f", actuator_msg->controls[3]);
         //  Publish Actuators message
         ActCmds_pub_.publish(actuator_msg);
     }
@@ -248,17 +248,17 @@ void controller_node::OdometryCallback(                                       //
 void controller_node::stateCallBack(const mavros_msgs::State::ConstPtr& msg){
     current_state_ = *msg;
     if (msg->armed){
-        ROS_INFO_ONCE("ARMED - State_msg.");
+        ROS_INFO_ONCE("[controller-node] ARMED - State_msg.");
     }
     else {
-        ROS_INFO("NOT ARMED - State_msg.");
+        ROS_INFO("[controller-node] NOT ARMED - State_msg.");
     }
 
     if (msg->mode == "OFFBOARD"){
-        ROS_INFO_ONCE("OFFBOARD - State_msg.");
+        ROS_INFO_ONCE("[controller-node] OFFBOARD - State_msg.");
     }
     else {
-        ROS_INFO("NOT OFFBOARD - State_msg.");
+        ROS_INFO("[controller-node] NOT OFFBOARD - State_msg.");
     }
 }
 
@@ -268,7 +268,7 @@ void controller_node::dynamicReconfigureCallback(const a_uav_controller::paramet
     controller_.setKVelocityGain(Eigen::Vector3d(config.K_v_x, config.K_v_y, config.K_v_z));
     controller_.setKAttitudeGain(Eigen::Vector3d(config.K_R_x, config.K_R_y, config.K_R_z));
     controller_.setKAngularRateGain(Eigen::Vector3d(config.K_w_x, config.K_w_y, config.K_w_z));
-    ROS_INFO("Gains changed!");
+    ROS_INFO("[controller-node] Gains changed!");
 }
 
 int main(int argc, char** argv) {

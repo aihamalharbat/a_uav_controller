@@ -50,7 +50,7 @@ void controller::calculateRotorVelocities(
     double T;
     Eigen::Vector3d B_z_d;
     computeTrajectoryTracking(&T, &B_z_d);
-    ROS_INFO("(calculateRotorVelocities)Thrust = %f", T);
+    ROS_INFO_ONCE("[controller] Thrust = %f", T);
 
     // Attitude tracking.
     Eigen::Vector3d tau;
@@ -81,7 +81,7 @@ void controller::calculateActCmds(
     double T;
     Eigen::Vector3d B_z_d;
     computeTrajectoryTracking(&T, &B_z_d);
-    ROS_INFO("(calculateActCmds)Thrust = %f", T);
+    ROS_INFO_ONCE("[controller] Thrust = %f", T);
 
     // Attitude tracking.
     Eigen::Vector3d tau;
@@ -221,31 +221,31 @@ Eigen::Vector4d controller::normalizeActCmds(Eigen::Vector4d *wrench) {
 void controller::getParameters(){
     ros::NodeHandle priv_nh("~");
     if (!priv_nh.getParam("uav_parameters/mass", _uav_mass)){
-        ROS_ERROR("Could not find topic  parameter!");
+        ROS_ERROR("[controller] Could not find topic  parameter!");
     }
     if (!priv_nh.getParam("uav_parameters/inertia/x", _inertia_matrix[0])){
-        ROS_ERROR("Could not find topic  parameter!");
+        ROS_ERROR("[controller] Could not find topic  parameter!");
     }
     if (!priv_nh.getParam("uav_parameters/inertia/y", _inertia_matrix[1])){
-        ROS_ERROR("Could not find topic  parameter!");
+        ROS_ERROR("[controller] Could not find topic  parameter!");
     }
     if (!priv_nh.getParam("uav_parameters/inertia/z", _inertia_matrix[2])){
-        ROS_ERROR("Could not find topic  parameter!");
+        ROS_ERROR("[controller] Could not find topic  parameter!");
     }
     if (!priv_nh.getParam("uav_parameters/gravity", _gravity)){
-        ROS_ERROR("Could not find topic  parameter!");
+        ROS_ERROR("[controller] Could not find topic  parameter!");
     }
     if (!priv_nh.getParam("uav_parameters/max_roll_torque", _max_roll_torque)){
-        ROS_ERROR("Could not find topic  parameter!");
+        ROS_ERROR("[controller] Could not find topic  parameter!");
     }
     if (!priv_nh.getParam("uav_parameters/max_pitch_torque", _max_pitch_torque)){
-        ROS_ERROR("Could not find topic  parameter!");
+        ROS_ERROR("[controller] Could not find topic  parameter!");
     }
     if (!priv_nh.getParam("uav_parameters/max_yaw_torque", _max_yaw_torque)){
-        ROS_ERROR("Could not find topic  parameter!");
+        ROS_ERROR("[controller] Could not find topic  parameter!");
     }
     if (!priv_nh.getParam("uav_parameters/max_thrust", _max_thrust)){
-        ROS_ERROR("Could not find topic  parameter!");
+        ROS_ERROR("[controller] Could not find topic  parameter!");
     }
 }
 
